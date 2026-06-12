@@ -1,0 +1,121 @@
+import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
+import { mockAuth } from '../api/mockAuth';
+
+interface User {
+  id: string;
+  email: string;
+  name?: string;
+  wb_api_key?: string;
+}
+
+interface AuthState {
+  user: User | null;
+  token: string | null;
+  isLoading: boolean;
+  error: string | null;
+  
+  // Действия
+  login: (email: string, password: string) => Promise<void>;
+  register: (email: string, password: string, name?: string) => Promise<void>;
+  logout: () => void;
+  setWbApiKey: (wbApiKey: string) => Promise<void>;
+  clearError: () => void;
+}
+
+export const useAuthStore = create<AuthState>()(
+  persist(
+    (set, get) => ({
+      user: null,
+      token: null,
+      isLoading: false,
+      error: null,
+
+      login: async (email: string, password: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          // Используем мок вместо реального API
+          const response = await mockAuth.login(email, password);
+          
+          const { access_token, user } = response.data;
+          
+          set({
+            user,
+            token: access_token,
+            isLoading: false,
+          });
+          
+          localStorage.setItem('access_token', access_token);
+        } catch (error: any) {
+          set({
+            error: error.message || 'Ошибка входа',
+            isLoading: false,
+          });
+        }
+      },
+
+      register: async (email: string, password: string, name?: string) => {
+        set({ isLoading: true, error: null });
+        try {
+          // Используем мок вместо реального API
+          const response = await mockAuth.register(email, password, name);
+          
+          const { access_token, user } = response.data;
+          
+          set({
+            user,
+            token: access_token,
+            isLoading: false,
+          });
+          
+          localStorage.setItem('access_token', access_token);
+        } catch (error: any) {
+          set({
+            error: error.message || 'Ошибка регистрации',
+            isLoading: false,
+          });
+        }
+      },
+
+      logout: () => {
+        set({
+          user: null,
+          token: null,
+        });
+        localStorage.removeItem('access_token');
+      },
+
+      setWbApiKey: async (wbApiKey: string) => {
+        const { user } = get();
+        if (!user) return;
+
+        set({ isLoading: true });
+        try {
+          await mockAuth.setWbApiKey(user.id, wbApiKey);
+          
+          set({
+            user: {
+              ...user,
+              wb_api_key: wbApiKey,
+            },
+            isLoading: false,
+          });
+        } catch (error: any) {
+          set({
+            error: error.message || 'Ошибка сохранения API ключа',
+            isLoading: false,
+          });
+        }
+      },
+
+      clearError: () => set({ error: null }),
+    }),
+    {
+      name: 'auth-storage',
+      partialize: (state) => ({ 
+        user: state.user, 
+        token: state.token 
+      }),
+    }
+  )
+);

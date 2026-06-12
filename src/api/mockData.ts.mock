@@ -1,0 +1,39 @@
+// Моковые данные для дашборда
+export const mockDashboardData = {
+    metrics: {
+      sales: 1248,
+      revenue: 4892400,
+      products: 89,
+      profitability: 24.7,
+    },
+  
+    salesChart: [
+      { date: '2024-01', sales: 4000, revenue: 1200000 },
+      { date: '2024-02', sales: 3000, revenue: 900000 },
+      { date: '2024-03', sales: 5000, revenue: 1500000 },
+      { date: '2024-04', sales: 4500, revenue: 1350000 },
+      { date: '2024-05', sales: 6000, revenue: 1800000 },
+      { date: '2024-06', sales: 5500, revenue: 1650000 },
+    ],
+  
+    topProducts: [
+      { id: 1, name: 'Смартфон X', sales: 450, revenue: 4500000, profitability: 28.5 },
+      { id: 2, name: 'Наушники Pro', sales: 320, revenue: 960000, profitability: 32.1 },
+      { id: 3, name: 'Часы Smart', sales: 280, revenue: 4200000, profitability: 24.3 },
+      { id: 4, name: 'Ноутбук Ultra', sales: 150, revenue: 7500000, profitability: 22.8 },
+      { id: 5, name: 'Колонка Sound', sales: 420, revenue: 2100000, profitability: 26.7 },
+    ],
+  
+    recentActivity: [
+      { id: 1, time: '10 мин назад', action: 'Синхронизация WB завершена', status: 'success' },
+      { id: 2, time: '1 час назад', action: 'Добавлен новый товар', status: 'info' },
+      { id: 3, time: '3 часа назад', action: 'Обновлена себестоимость', status: 'info' },
+      { id: 4, time: 'Вчера', action: 'Сгенерирован отчет', status: 'success' },
+    ],
+  };
+  
+  // Функция для получения данных с имитацией задержки
+  export const fetchDashboardData = async () => {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    return { data: mockDashboardData };
+  };
