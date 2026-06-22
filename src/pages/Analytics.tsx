@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  BarChart3, TrendingUp, DollarSign, Package, PieChart, 
-  Download, Filter, Calendar, RefreshCw, AlertCircle 
+import {
+  BarChart3, TrendingUp, DollarSign, Package, PieChart,
+  Download, Filter, Calendar, RefreshCw, AlertCircle, User
 } from 'lucide-react';
+import { useAuthStore } from '../store/authStore';
 import AnalyticsFiltersComponent from '../components/AnalyticsFilters';
 import AnalyticsTable from '../components/AnalyticsTable';
 import AnalyticsCharts from '../components/AnalyticsCharts';
@@ -13,6 +14,7 @@ import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
 export default function Analytics() {
+  const { user, logout } = useAuthStore();
   const [analyticsData, setAnalyticsData] = useState<RentabilityResponse | null>(null);
   const [filteredProducts, setFilteredProducts] = useState<RentabilityResponse['products']>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -26,10 +28,10 @@ export default function Analytics() {
     group_by: 'month',
   });
 
-  // Загрузка данных
+  // Загрузка данных при первом рендере
   useEffect(() => {
-    loadAnalyticsData();
-  }, [filters.date_from, filters.date_to, filters.group_by]);
+    loadAnalyticsData(filters);
+  }, []);
 
   // Фильтрация продуктов
   useEffect(() => {
@@ -43,16 +45,15 @@ export default function Analytics() {
     }
   }, [analyticsData, filters.sku, filters.min_margin_percent, filters.min_quantity]);
 
-  const loadAnalyticsData = async () => {
+  const loadAnalyticsData = async (f: AnalyticsFilters = filters) => {
     setIsLoading(true);
     setError('');
-    
+
     try {
-      // Реальный API вызов
       const data = await analyticsApi.getRentability({
-        date_from: filters.date_from,
-        date_to: filters.date_to,
-        group_by: filters.group_by,
+        date_from: f.date_from,
+        date_to: f.date_to,
+        group_by: f.group_by,
       });
       setAnalyticsData(data);
     } catch (err: any) {
@@ -71,6 +72,10 @@ export default function Analytics() {
 
   const handleFilterChange = (newFilters: AnalyticsFilters) => {
     setFilters(newFilters);
+  };
+
+  const handleApply = () => {
+    loadAnalyticsData(filters);
   };
 
   const handleExport = async (format: 'excel' | 'pdf') => {
@@ -197,28 +202,23 @@ export default function Analytics() {
               </div>
               
               <nav className="ml-10 flex space-x-8">
-                <Link 
-                  to="/dashboard" 
-                  className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300"
-                >
-                  Дашборд
-                </Link>
-                <Link 
-                  to="/products" 
-                  className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300"
-                >
-                  Товары
-                </Link>
-                <Link 
-                  to="/analytics" 
+                <Link
+                  to="/analytics"
                   className="text-purple-600 font-medium border-b-2 border-purple-600 px-1 pb-1"
                 >
                   Аналитика
                 </Link>
-                <Link 
-                  to="/taxes" 
-                  className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300">
-                  Налоговые ставки 
+                <Link
+                  to="/products"
+                  className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300"
+                >
+                  Товары
+                </Link>
+                <Link
+                  to="/taxes"
+                  className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300"
+                >
+                  Налоговые ставки
                 </Link>
               </nav>
             </div>
@@ -241,14 +241,23 @@ export default function Analytics() {
                   <Download className="w-4 h-4 mr-2" />
                   {isExporting ? 'Экспорт...' : 'Excel'}
                 </button>
-                {/* <button
-                  onClick={() => handleExport('pdf')}
-                  className="px-4 py-2 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition flex items-center"
-                >
-                  <Download className="w-4 h-4 mr-2" />
-                  PDF
-                </button> */}
               </div>
+
+              <div className="relative">
+                <Link to="/profile" className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-lg transition">
+                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
+                    <User className="w-4 h-4 text-white" />
+                  </div>
+                  <span className="font-medium text-gray-700">{user?.name || user?.email}</span>
+                </Link>
+              </div>
+
+              <button
+                onClick={logout}
+                className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
+              >
+                Выйти
+              </button>
             </div>
           </div>
         </div>
@@ -280,9 +289,10 @@ export default function Analytics() {
         ) : null}
 
         {/* Фильтры */}
-        <AnalyticsFiltersComponent 
-          filters={filters} 
+        <AnalyticsFiltersComponent
+          filters={filters}
           onFilterChange={handleFilterChange}
+          onApply={handleApply}
         />
 
         {/* Общая статистика */}

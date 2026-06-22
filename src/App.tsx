@@ -1,6 +1,6 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
-import Dashboard from './pages/Dashboard';
+import { useInactivityLogout } from './hooks/useInactivityLogout';
 import Login from './pages/Login';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
@@ -20,10 +20,12 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 // Компонент публичного маршрута (только для неавторизованных)
 function PublicRoute({ children }: { children: React.ReactNode }) {
   const { token } = useAuthStore();
-  return !token ? <>{children}</> : <Navigate to="/dashboard" />;
+  return !token ? <>{children}</> : <Navigate to="/analytics" />;
 }
 
 function App() {
+  useInactivityLogout();
+
   return (
     <Router>
       <ToastNotification /> 
@@ -35,12 +37,6 @@ function App() {
             </PublicRoute>
           } />
           
-          <Route path="/dashboard" element={
-            <PrivateRoute>
-              <Dashboard />
-            </PrivateRoute>
-          } />
-
           <Route path="/products" element={  
             <PrivateRoute>
               <Products />
@@ -75,7 +71,7 @@ function App() {
             <ApiTest />
           } />
           
-          <Route path="/" element={<Navigate to="/dashboard" />} />
+          <Route path="/" element={<Navigate to="/analytics" />} />
           
           <Route path="*" element={
             <div className="flex items-center justify-center h-screen">

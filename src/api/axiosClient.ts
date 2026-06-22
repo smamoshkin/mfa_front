@@ -15,7 +15,7 @@ const axiosClient = axios.create({
 // Интерцептор для добавления JWT токена
 axiosClient.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('access_token');
+    const token = sessionStorage.getItem('access_token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -55,7 +55,7 @@ axiosClient.interceptors.response.use(
       
       try {
         // Попытка обновить токен (если есть refresh token логика)
-        const refreshToken = localStorage.getItem('refresh_token');
+        const refreshToken = sessionStorage.getItem('refresh_token');
         if (refreshToken) {
           // Здесь можно добавить запрос на обновление токена
           // const response = await axios.post('/auth/refresh', { refresh_token: refreshToken });
@@ -69,9 +69,9 @@ axiosClient.interceptors.response.use(
       }
       
       // Если не удалось обновить токен или нет refresh token
-      localStorage.removeItem('access_token');
-      localStorage.removeItem('refresh_token');
-      localStorage.removeItem('auth-storage');
+      sessionStorage.removeItem('access_token');
+      sessionStorage.removeItem('refresh_token');
+      sessionStorage.removeItem('auth-storage');
       
       // Редирект на логин только если не на странице логина
       if (!window.location.pathname.includes('/login')) {

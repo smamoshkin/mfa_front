@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
 import { authApi } from '../api/authApi';
 import type { User } from '../types/api';
 
@@ -15,6 +15,7 @@ interface AuthState {
   logout: () => void;
   setWbApiKey: (wbApiKey: string) => Promise<void>;
   loadCurrentUser: () => Promise<void>;
+  updateUser: () => Promise<void>;
   clearError: () => void;
 }
 
@@ -40,7 +41,7 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           });
           
-          localStorage.setItem('access_token', response.access_token);
+          sessionStorage.setItem('access_token', response.access_token);
 
           // Загружаем информацию о пользователе после успешного логина
           get().loadCurrentUser();
@@ -76,7 +77,7 @@ export const useAuthStore = create<AuthState>()(
             isLoading: false,
           });
           
-          localStorage.setItem('access_token', response.access_token);
+          sessionStorage.setItem('access_token', response.access_token);
           
           // Загружаем информацию о пользователе
           get().loadCurrentUser();
@@ -108,17 +109,17 @@ export const useAuthStore = create<AuthState>()(
 
         set({ isLoading: true, error: null });
         try {
-          const updatedUser = await authApi.updateWbApiKey(user.id.toString(), wbApiKey);
-          
+          await authApi.updateWbApiKey(user.id.toString(), wbApiKey);
+          // Бэкенд не возвращает User — обновляем поле локально
           set({
-            user: updatedUser,
+            user: { ...user, wb_api_key: wbApiKey },
             isLoading: false,
           });
         } catch (error: any) {
-          const errorMessage = error.response?.data?.detail || 
-                             error.response?.data?.message || 
+          const errorMessage = error.response?.data?.detail ||
+                             error.response?.data?.message ||
                              'Ошибка сохранения API ключа';
-          
+
           set({
             error: errorMessage,
             isLoading: false,
@@ -153,12 +154,8 @@ export const useAuthStore = create<AuthState>()(
 
       updateUser: async () => {
         try {
-          const response = await authApi.getProfile();
-          set({
-            user: response.data,
-            isLoading: false,
-            error: null
-          });
+          const user = await authApi.getCurrentUser();
+          set({ user, isLoading: false, error: null });
         } catch (error) {
           console.error('Ошибка обновления пользователя:', error);
         }
@@ -168,9 +165,10 @@ export const useAuthStore = create<AuthState>()(
     }),
     {
       name: 'auth-storage',
-      partialize: (state) => ({ 
-        user: state.user, 
-        token: state.token 
+      storage: createJSONStorage(() => sessionStorage),
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token
       }),
     }
   )

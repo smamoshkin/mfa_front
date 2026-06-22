@@ -1,5 +1,19 @@
 // Типы на основе контрактов API
 
+// Пользователь / тенант
+export interface User {
+  id: number;
+  name: string;
+  email: string;
+  wb_api_key?: string;
+  ozon_api_key?: string;
+  is_active: boolean;
+  created_at: string;
+  last_login?: string;
+  email_verified?: boolean;
+  wb_api_key_expire_at?: string;
+}
+
 // Продукт из API
 export interface Product {
     id: number;

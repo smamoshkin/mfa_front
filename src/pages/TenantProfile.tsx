@@ -3,9 +3,9 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuthStore } from '../store/authStore';
-import { 
-  User, Mail, Key, Lock, Shield, Calendar, 
-  Save, X, Eye, EyeOff, Bell, Globe, Building,
+import {
+  User, Mail, Key, Lock, Shield,
+  Save, Eye, EyeOff, Globe, Building,
   CheckCircle, AlertCircle, RefreshCw
 } from 'lucide-react';
 import { authApi } from '../api/authApi';
@@ -33,7 +33,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
 export default function TenantProfile() {
-  const { user, logout, updateUser } = useAuthStore();
+  const { user, logout, updateUser, setWbApiKey } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'api'>('profile');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState({
@@ -41,6 +41,8 @@ export default function TenantProfile() {
     new: false,
     confirm: false,
   });
+  const [showWbKey, setShowWbKey] = useState(false);
+  const [wbApiKeyInput, setWbApiKeyInput] = useState(user?.wb_api_key || '');
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
   const profileForm = useForm<ProfileFormData>({
@@ -71,6 +73,7 @@ export default function TenantProfile() {
         wb_api_key: user.wb_api_key || '',
         ozon_api_key: user.ozon_api_key || '',
       });
+      setWbApiKeyInput(user.wb_api_key || '');
     }
   }, [user]);
 
@@ -110,23 +113,20 @@ export default function TenantProfile() {
     }
   };
 
-  const handleApiKeyUpdate = async (platform: 'wb' | 'ozon', value: string) => {
+  const handleWbApiKeyUpdate = async () => {
+    if (!wbApiKeyInput.trim()) {
+      setMessage({ type: 'error', text: 'Введите API ключ Wildberries' });
+      return;
+    }
     setIsLoading(true);
     setMessage(null);
-    
     try {
-      await authApi.updateApiKey({ 
-        [`${platform}_api_key`]: value 
-      });
-      await updateUser();
-      setMessage({ 
-        type: 'success', 
-        text: `API ключ ${platform === 'wb' ? 'Wildberries' : 'Ozon'} обновлен!` 
-      });
+      await setWbApiKey(wbApiKeyInput.trim());
+      setMessage({ type: 'success', text: 'API ключ Wildberries успешно сохранён!' });
     } catch (err: any) {
-      setMessage({ 
-        type: 'error', 
-        text: `Ошибка обновления ключа: ${err.response?.data?.detail || err.message}` 
+      setMessage({
+        type: 'error',
+        text: `Ошибка сохранения ключа: ${err.response?.data?.detail || err.message || 'неизвестная ошибка'}`,
       });
     } finally {
       setIsLoading(false);
@@ -165,23 +165,23 @@ export default function TenantProfile() {
               </div>
               
               <nav className="ml-10 flex space-x-8">
-                <a 
-                  href="/dashboard" 
+                <a
+                  href="/analytics"
                   className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300"
                 >
-                  Дашборд
+                  Аналитика
                 </a>
-                <a 
-                  href="/products" 
+                <a
+                  href="/products"
                   className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300"
                 >
                   Товары
                 </a>
-                <a 
-                  href="/analytics" 
+                <a
+                  href="/taxes"
                   className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300"
                 >
-                  Аналитика
+                  Налоговые ставки
                 </a>
               </nav>
             </div>
@@ -551,31 +551,48 @@ export default function TenantProfile() {
                     <div className="space-y-4">
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                            API ключ Wildberries
-                            {user?.wb_api_key_expire_at ? (
-                                <span className="ml-2 text-blue-600 font-normal">
-                                🔑 Истекает {format(new Date(user.wb_api_key_expire_at), 'dd.MM.yyyy HH:mm')}
-                                </span>
-                            ) : (
-                                <span className="ml-2 text-purple-500 font-normal italic">
-                                ⏳ Ожидание данных...
-                                </span>
-                            )}
+                          API ключ Wildberries
+                          {user?.wb_api_key_expire_at ? (
+                            <span className="ml-2 text-blue-600 font-normal">
+                              Истекает {format(new Date(user.wb_api_key_expire_at), 'dd.MM.yyyy HH:mm')}
+                            </span>
+                          ) : null}
                         </label>
                         <div className="flex gap-3">
-                          <input
-                            type="password"
-                            value={user?.wb_api_key || ''}
-                            onChange={(e) => profileForm.setValue('wb_api_key', e.target.value)}
-                            className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
-                            placeholder="Введите API ключ"
-                          />
+                          <div className="relative flex-1">
+                            <input
+                              type={showWbKey ? 'text' : 'password'}
+                              value={wbApiKeyInput}
+                              onChange={(e) => setWbApiKeyInput(e.target.value)}
+                              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                              placeholder="Введите API ключ Wildberries"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setShowWbKey((v) => !v)}
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                              tabIndex={-1}
+                            >
+                              {showWbKey ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                            </button>
+                          </div>
                           <button
-                            onClick={() => handleApiKeyUpdate('wb', profileForm.getValues('wb_api_key'))}
+                            type="button"
+                            onClick={handleWbApiKeyUpdate}
                             disabled={isLoading}
-                            className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition disabled:opacity-50"
+                            className="px-6 py-3 bg-blue-600 text-white font-medium rounded-xl hover:bg-blue-700 transition disabled:opacity-50 flex items-center gap-2"
                           >
-                            {isLoading ? 'Сохранение...' : 'Сохранить'}
+                            {isLoading ? (
+                              <>
+                                <RefreshCw className="w-4 h-4 animate-spin" />
+                                Сохранение...
+                              </>
+                            ) : (
+                              <>
+                                <Save className="w-4 h-4" />
+                                Сохранить
+                              </>
+                            )}
                           </button>
                         </div>
                       </div>

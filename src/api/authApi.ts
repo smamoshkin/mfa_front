@@ -50,16 +50,15 @@ export const authApi = {
   },
 
   // Обновление WB API ключа
-  updateWbApiKey: async (tenantId: string, wbApiKey: string): Promise<User> => {
-    const response = await axiosClient.patch(`/tenants/${tenantId}/set_wb_key`, {
+  updateWbApiKey: async (tenantId: string, wbApiKey: string): Promise<void> => {
+    await axiosClient.patch(`/tenants/${tenantId}/set_wb_key`, {
       wb_api_key: wbApiKey,
     });
-    return response.data;
   },
 
   // Выход (на клиенте просто удаляем токен)
   logout: () => {
-    localStorage.removeItem('access_token');
+    sessionStorage.removeItem('access_token');
   },
 
   updateProfile: async (data: {

@@ -5,9 +5,10 @@ import { X, Key, AlertCircle, Check } from 'lucide-react';
 interface WbApiKeyModalProps {
   isOpen: boolean;
   onClose: () => void;
+  onSuccess?: () => void;
 }
 
-export default function WbApiKeyModal({ isOpen, onClose }: WbApiKeyModalProps) {
+export default function WbApiKeyModal({ isOpen, onClose, onSuccess }: WbApiKeyModalProps) {
   const { user, setWbApiKey, isLoading } = useAuthStore();
   const [apiKey, setApiKey] = useState(user?.wb_api_key || '');
   const [error, setError] = useState('');
@@ -28,6 +29,7 @@ export default function WbApiKeyModal({ isOpen, onClose }: WbApiKeyModalProps) {
       setSuccess(true);
       setTimeout(() => {
         onClose();
+        onSuccess?.();
       }, 1500);
     } catch (err: any) {
       setError(err.message || 'Ошибка сохранения ключа');
