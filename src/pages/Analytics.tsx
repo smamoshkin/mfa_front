@@ -1,17 +1,104 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
-  BarChart3, TrendingUp, DollarSign, Package, PieChart,
-  Download, Filter, Calendar, RefreshCw, AlertCircle, User
+  BarChart3, DollarSign, Package, PieChart, Wallet, Megaphone, Warehouse, Truck, Receipt, Percent,
+  Download, Filter, Calendar, RefreshCw, AlertCircle, User, ArrowUp, ArrowDown, ArrowUpDown
 } from 'lucide-react';
 import { useAuthStore } from '../store/authStore';
 import AnalyticsFiltersComponent from '../components/AnalyticsFilters';
-import AnalyticsTable from '../components/AnalyticsTable';
-import AnalyticsCharts from '../components/AnalyticsCharts';
 import { analyticsApi } from '../api/analyticsApi';
 import type { RentabilityResponse, AnalyticsFilters } from '../types/analytics';
 import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
+
+type AbcCategory = 'A' | 'B' | 'C';
+
+const ABC_RANK: Record<AbcCategory, number> = { A: 0, B: 1, C: 2 };
+
+// ABC по вкладу в общую маржу: A — первые 80% накопленной маржи, B — следующие 15%, C — остальное
+function getMarginCategory(cumulativeSharePercent: number): AbcCategory {
+  if (cumulativeSharePercent <= 80) return 'A';
+  if (cumulativeSharePercent <= 95) return 'B';
+  return 'C';
+}
+
+// Оборачиваемость пока не приходит с бэка (всегда 0) — до появления реальных остатков
+// считаем товар худшей категорией, чтобы не завышать итоговую оценку
+function getTurnoverCategory(turnoverDays: number): AbcCategory {
+  if (turnoverDays <= 0) return 'C';
+  if (turnoverDays <= 30) return 'A';
+  if (turnoverDays <= 60) return 'B';
+  return 'C';
+}
+
+// Матрица маржа × оборачиваемость: обе оси сильные — A, обе слабые — C, смешанные — B
+function getAbcCategory(marginCategory: AbcCategory, turnoverCategory: AbcCategory): AbcCategory {
+  const rank = ABC_RANK[marginCategory] + ABC_RANK[turnoverCategory];
+  if (rank <= 1) return 'A';
+  if (rank === 2) return 'B';
+  return 'C';
+}
+
+function withAbcCategories(products: RentabilityResponse['products']) {
+  const sorted = [...products].sort((a, b) => b.margin - a.margin);
+  const totalMargin = sorted.reduce((sum, p) => sum + p.margin, 0);
+  let cumulative = 0;
+
+  return sorted.map((product) => {
+    cumulative += product.margin;
+    const marginShare = totalMargin !== 0 ? (cumulative / totalMargin) * 100 : 100;
+    const marginCategory = getMarginCategory(marginShare);
+    const turnoverDays = 0; // TODO: подставить реальную оборачиваемость, когда появятся остатки с бэка
+    const turnoverCategory = getTurnoverCategory(turnoverDays);
+
+    return {
+      product,
+      turnoverDays,
+      marginCategory,
+      turnoverCategory,
+      abcCategory: getAbcCategory(marginCategory, turnoverCategory),
+    };
+  });
+}
+
+const ABC_BADGE_STYLES: Record<AbcCategory, string> = {
+  A: 'bg-emerald-100 text-emerald-700',
+  B: 'bg-amber-100 text-amber-700',
+  C: 'bg-red-100 text-red-700',
+};
+
+type AbcRow = ReturnType<typeof withAbcCategories>[number];
+type StatsColumnKey = 'sku' | 'margin' | 'margin_percent' | 'turnover' | 'marginCategory' | 'turnoverCategory' | 'abcCategory';
+
+const STATS_COLUMNS: { key: StatsColumnKey; label: string; type: 'text' | 'category' }[] = [
+  { key: 'sku', label: 'Артикул', type: 'text' },
+  { key: 'margin', label: 'Маржа', type: 'text' },
+  { key: 'margin_percent', label: 'Маржинальность', type: 'text' },
+  { key: 'turnover', label: 'Оборачиваемость', type: 'text' },
+  { key: 'marginCategory', label: 'Категория (маржа)', type: 'category' },
+  { key: 'turnoverCategory', label: 'Категория (оборачиваемость)', type: 'category' },
+  { key: 'abcCategory', label: 'Категория (общая)', type: 'category' },
+];
+
+function getStatsColumnValue(row: AbcRow, key: StatsColumnKey): string | number {
+  switch (key) {
+    case 'sku': return row.product.sku;
+    case 'margin': return row.product.margin;
+    case 'margin_percent': return row.product.margin_percent;
+    case 'turnover': return row.turnoverDays;
+    case 'marginCategory': return row.marginCategory;
+    case 'turnoverCategory': return row.turnoverCategory;
+    case 'abcCategory': return row.abcCategory;
+  }
+}
+
+function matchesStatsFilter(row: AbcRow, key: StatsColumnKey, filterValue: string): boolean {
+  if (!filterValue.trim()) return true;
+  const value = getStatsColumnValue(row, key);
+  if (key === 'marginCategory' || key === 'turnoverCategory' || key === 'abcCategory') {
+    return value === filterValue;
+  }
+  return String(value).toLowerCase().includes(filterValue.trim().toLowerCase());
+}
 
 export default function Analytics() {
   const { user, logout } = useAuthStore();
@@ -20,6 +107,32 @@ export default function Analytics() {
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
   const [error, setError] = useState('');
+
+  // Сортировка и фильтрация таблицы "Статистика по товарам"
+  const [statsSortKey, setStatsSortKey] = useState<StatsColumnKey>('margin');
+  const [statsSortDirection, setStatsSortDirection] = useState<'asc' | 'desc'>('desc');
+  const [statsColumnFilters, setStatsColumnFilters] = useState<Record<StatsColumnKey, string>>({
+    sku: '',
+    margin: '',
+    margin_percent: '',
+    turnover: '',
+    marginCategory: '',
+    turnoverCategory: '',
+    abcCategory: '',
+  });
+
+  const handleStatsSort = (key: StatsColumnKey) => {
+    if (statsSortKey === key) {
+      setStatsSortDirection((prev) => (prev === 'asc' ? 'desc' : 'asc'));
+    } else {
+      setStatsSortKey(key);
+      setStatsSortDirection('asc');
+    }
+  };
+
+  const handleStatsFilterChange = (key: StatsColumnKey, value: string) => {
+    setStatsColumnFilters((prev) => ({ ...prev, [key]: value }));
+  };
 
   // Начальные фильтры (текущий месяц)
   const [filters, setFilters] = useState<AnalyticsFilters>({
@@ -44,6 +157,21 @@ export default function Analytics() {
       setFilteredProducts(filtered);
     }
   }, [analyticsData, filters.sku, filters.min_margin_percent, filters.min_quantity]);
+
+  const statsRows = useMemo(() => {
+    const rows = withAbcCategories(filteredProducts).filter((row) =>
+      STATS_COLUMNS.every((column) => matchesStatsFilter(row, column.key, statsColumnFilters[column.key]))
+    );
+
+    return rows.sort((a, b) => {
+      const va = getStatsColumnValue(a, statsSortKey);
+      const vb = getStatsColumnValue(b, statsSortKey);
+      const compared = typeof va === 'number' && typeof vb === 'number'
+        ? va - vb
+        : String(va).localeCompare(String(vb));
+      return statsSortDirection === 'asc' ? compared : -compared;
+    });
+  }, [filteredProducts, statsColumnFilters, statsSortKey, statsSortDirection]);
 
   const loadAnalyticsData = async (f: AnalyticsFilters = filters) => {
     setIsLoading(true);
@@ -298,194 +426,280 @@ export default function Analytics() {
         {/* Общая статистика */}
         {analyticsData && (
           <>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 rounded-lg bg-blue-100">
-                    <DollarSign className="w-6 h-6 text-blue-600" />
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Основные показатели
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+              <div className={`rounded-xl shadow-sm border p-4 ${
+                analyticsData.rentability.profitability >= 0
+                  ? 'bg-gradient-to-br from-emerald-600 to-emerald-700 border-emerald-700'
+                  : 'bg-gradient-to-br from-red-600 to-red-700 border-red-700'
+              }`}>
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-1.5 rounded-lg bg-white/20">
+                    <BarChart3 className="w-5 h-5 text-white" />
                   </div>
-                  <span className={`text-sm font-medium ${
-                    analyticsData.rentability.profitability > 20 ? 'text-green-600 bg-green-50' :
-                    analyticsData.rentability.profitability > 10 ? 'text-yellow-600 bg-yellow-50' :
-                    'text-red-600 bg-red-50'
-                  } px-2 py-1 rounded-full`}>
+                  <span className="text-xs font-medium text-white bg-white/20 px-2 py-0.5 rounded-full">
                     {analyticsData.rentability.profitability > 0 ? '+' : ''}
                     {analyticsData.rentability.profitability.toFixed(1)}%
                   </span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-1">
+                <h3 className="text-xl font-bold text-white mb-0.5">
+                  {analyticsData.rentability.profitability.toFixed(1)}%
+                </h3>
+                <p className="text-white/80 text-sm">Общая рентабельность</p>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-emerald-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-1.5 rounded-lg bg-emerald-50">
+                    <DollarSign className="w-5 h-5 text-emerald-700" />
+                  </div>
+                  <span className={`text-xs font-medium ${
+                    analyticsData.rentability.profitability > 20 ? 'text-emerald-700 bg-emerald-50' :
+                    analyticsData.rentability.profitability > 10 ? 'text-yellow-600 bg-yellow-50' :
+                    'text-red-600 bg-red-50'
+                  } px-2 py-0.5 rounded-full`}>
+                    {analyticsData.rentability.profitability > 0 ? '+' : ''}
+                    {analyticsData.rentability.profitability.toFixed(1)}%
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-0.5">
                   {analyticsData.summary.total_revenue}
                 </h3>
                 <p className="text-gray-500 text-sm">Общая выручка</p>
-                <div className="mt-2 text-sm text-gray-600">
-                  Маржа: {analyticsData.summary.total_margin}
-                </div>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 rounded-lg bg-green-100">
-                    <TrendingUp className="w-6 h-6 text-green-600" />
+              <div className="bg-white rounded-xl shadow-sm border border-emerald-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-1.5 rounded-lg bg-emerald-50">
+                    <Wallet className="w-5 h-5 text-emerald-700" />
                   </div>
-                  <span className="text-sm font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
-                    {analyticsData.totals.product_count} шт.
+                  <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    {analyticsData.rentability.shop_margin_payout.toFixed(1)}%
                   </span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                  {analyticsData.totals.total_quantity}
+                <h3 className="text-xl font-bold text-gray-900 mb-0.5">
+                  {analyticsData.totals.total_payout.toLocaleString()} ₽
                 </h3>
-                <p className="text-gray-500 text-sm">Продано товаров</p>
-                <div className="mt-2 text-sm text-gray-600">
-                  {analyticsData.rentability.margin_per_unit.toFixed(2)} ₽ маржа/ед.
-                </div>
+                <p className="text-gray-500 text-sm">Перечислено продавцу</p>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 rounded-lg bg-purple-100">
-                    <PieChart className="w-6 h-6 text-purple-600" />
+              <div className="bg-white rounded-xl shadow-sm border border-emerald-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-1.5 rounded-lg bg-emerald-50">
+                    <PieChart className="w-5 h-5 text-emerald-700" />
                   </div>
-                  <span className="text-sm font-medium text-blue-600 bg-blue-50 px-2 py-1 rounded-full">
+                  <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
                     {analyticsData.rentability.shop_margin_revenue.toFixed(1)}%
                   </span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                  {analyticsData.rentability.margin_after_salary.toLocaleString()} ₽
+                <h3 className="text-xl font-bold text-gray-900 mb-0.5">
+                  {analyticsData.rentability.margin_minus_expenses.toLocaleString()} ₽
                 </h3>
-                <p className="text-gray-500 text-sm">Маржа после зарплаты</p>
-                <div className="mt-2 text-sm text-gray-600">
-                  Зарплата: {analyticsData.rentability.total_salary.toLocaleString()} ₽
-                </div>
+                <p className="text-gray-500 text-sm">Маржа</p>
               </div>
 
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="p-2 rounded-lg bg-orange-100">
-                    <Package className="w-6 h-6 text-orange-600" />
+              <div className="bg-white rounded-xl shadow-sm border border-emerald-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-1.5 rounded-lg bg-emerald-50">
+                    <Package className="w-5 h-5 text-emerald-700" />
                   </div>
-                  <span className="text-sm font-medium text-purple-600 bg-purple-50 px-2 py-1 rounded-full">
-                    {filteredProducts.length}/{analyticsData.products.length}
+                  <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
+                    {analyticsData.totals.product_count} шт.
                   </span>
                 </div>
-                <h3 className="text-2xl font-bold text-gray-900 mb-1">
-                  {analyticsData.totals.product_count}
+                <h3 className="text-xl font-bold text-gray-900 mb-0.5">
+                  {analyticsData.totals.total_quantity}
                 </h3>
-                <p className="text-gray-500 text-sm">Товаров в аналитике</p>
-                <div className="mt-2 text-sm text-gray-600">
-                  Показано: {filteredProducts.length} товаров
-                </div>
+                <p className="text-gray-500 text-sm">Продано товаров</p>
               </div>
             </div>
 
-            {/* Графики */}
-            <div className="mb-8">
-              <AnalyticsCharts 
-                analyticsData={analyticsData}
-                filteredProducts={filteredProducts}
-              />
-            </div>
-
-            {/* Детальная аналитика */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Детальная аналитика</h2>
-                <div className="text-sm text-gray-500">
-                  Период: с {format(new Date(analyticsData.period.date_from), 'd MMMM yyyy', { locale: ru })} по{' '}
-                  {format(new Date(analyticsData.period.date_to), 'd MMMM yyyy', { locale: ru })}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900">Основные показатели</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Общая маржа:</span>
-                      <span className="font-medium">{analyticsData.rentability.margin_minus_expenses.toLocaleString()} ₽</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Маржа на единицу:</span>
-                      <span className="font-medium">{analyticsData.rentability.margin_per_unit.toFixed(2)} ₽</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Магазинная наценка (выручка):</span>
-                      <span className="font-medium">{analyticsData.rentability.shop_margin_revenue.toFixed(1)}%</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Магазинная наценка (выплата):</span>
-                      <span className="font-medium">{analyticsData.rentability.shop_margin_payout.toFixed(1)}%</span>
-                    </div>
+            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
+              Расходы
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+              <div className="bg-white rounded-xl shadow-sm border border-red-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-1.5 rounded-lg bg-red-50">
+                    <Megaphone className="w-5 h-5 text-red-700" />
                   </div>
+                  <span className="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">
+                    {(analyticsData.rentability.total_advertising / analyticsData.totals.total_revenue * 100).toFixed(1)}%
+                  </span>
                 </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-0.5">
+                  {analyticsData.rentability.total_advertising.toLocaleString()} ₽
+                </h3>
+                <p className="text-gray-500 text-sm">Расходы на рекламу</p>
+              </div>
 
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900">Расходы</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Логистика:</span>
-                      <span className="font-medium">{analyticsData.rentability.total_logistics.toLocaleString()} ₽</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Реклама:</span>
-                      <span className="font-medium">{analyticsData.rentability.total_advertising.toLocaleString()} ₽</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Хранение:</span>
-                      <span className="font-medium">{analyticsData.totals.total_storage_fee.toLocaleString()} ₽</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Налог:</span>
-                      <span className="font-medium">{analyticsData.totals.total_tax.toLocaleString()} ₽</span>
-                    </div>
+              <div className="bg-white rounded-xl shadow-sm border border-red-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-1.5 rounded-lg bg-red-50">
+                    <Warehouse className="w-5 h-5 text-red-700" />
                   </div>
+                  <span className="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">
+                    {(analyticsData.totals.total_storage_fee / analyticsData.totals.total_revenue * 100).toFixed(1)}%
+                  </span>
                 </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-0.5">
+                  {analyticsData.totals.total_storage_fee.toLocaleString()} ₽
+                </h3>
+                <p className="text-gray-500 text-sm">Хранение</p>
+              </div>
 
-                <div className="space-y-4">
-                  <h3 className="font-semibold text-gray-900">Финансовые показатели</h3>
-                  <div className="space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Выплата WB (10%):</span>
-                      <span className="font-medium">{analyticsData.rentability.wb_realized_10p.toLocaleString()} ₽</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Премия (5%):</span>
-                      <span className="font-medium">{analyticsData.rentability.premium_5p.toLocaleString()} ₽</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">Маржа (10%):</span>
-                      <span className="font-medium">{analyticsData.rentability.margin_10p.toLocaleString()} ₽</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-gray-600">DRR:</span>
-                      <span className="font-medium">{analyticsData.rentability.drr.toFixed(2)}%</span>
-                    </div>
+              <div className="bg-white rounded-xl shadow-sm border border-red-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-1.5 rounded-lg bg-red-50">
+                    <Truck className="w-5 h-5 text-red-700" />
                   </div>
+                  <span className="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">
+                    {(analyticsData.rentability.total_logistics / analyticsData.totals.total_revenue * 100).toFixed(1)}%
+                  </span>
                 </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-0.5">
+                  {analyticsData.rentability.total_logistics.toLocaleString()} ₽
+                </h3>
+                <p className="text-gray-500 text-sm">Логистика</p>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-red-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-1.5 rounded-lg bg-red-50">
+                    <Receipt className="w-5 h-5 text-red-700" />
+                  </div>
+                  <span className="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">
+                    {(analyticsData.totals.total_tax / analyticsData.totals.total_revenue * 100).toFixed(1)}%
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-0.5">
+                  {analyticsData.totals.total_tax.toLocaleString()} ₽
+                </h3>
+                <p className="text-gray-500 text-sm">Налог</p>
+              </div>
+
+              <div className="bg-white rounded-xl shadow-sm border border-red-100 p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="p-1.5 rounded-lg bg-red-50">
+                    <Percent className="w-5 h-5 text-red-700" />
+                  </div>
+                  <span className="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">
+                    {analyticsData.rentability.drr.toFixed(2)}%
+                  </span>
+                </div>
+                <h3 className="text-xl font-bold text-gray-900 mb-0.5">
+                  {analyticsData.rentability.drr.toFixed(2)}%
+                </h3>
+                <p className="text-gray-500 text-sm">DRR</p>
               </div>
             </div>
 
-            {/* Таблица товаров */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-              <AnalyticsTable 
-                products={filteredProducts}
-                isLoading={isLoading}
-              />
-            </div>
-
-            {/* Информация о данных */}
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <div className="flex items-center justify-between text-sm text-gray-600">
-                <div>
-                  <span className="font-medium">Информация:</span> Данные обновляются при каждой загрузке страницы. 
-                  {error && <span className="ml-2 text-red-600">Внимание: {error}</span>}
-                </div>
-                <div className="flex items-center space-x-4">
-                  <span>DRR: {analyticsData.rentability.drr.toFixed(2)}%</span>
-                  <span>Товаров: {filteredProducts.length}</span>
-                  <span>Период: {analyticsData.period.group_by}</span>
-                </div>
+            {/* Товары: маржа и ABC-категория */}
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden mb-8">
+              <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                <h2 className="text-xl font-bold text-gray-900">Статистика по товарам</h2>
+                <span className="text-sm text-gray-500">
+                  Показано {statsRows.length} из {filteredProducts.length}
+                </span>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      {STATS_COLUMNS.map((column) => (
+                        <th key={column.key} className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          <button
+                            type="button"
+                            onClick={() => handleStatsSort(column.key)}
+                            className="flex items-center gap-1 hover:text-gray-700"
+                          >
+                            {column.label}
+                            {statsSortKey === column.key ? (
+                              statsSortDirection === 'asc' ? (
+                                <ArrowUp className="w-3 h-3" />
+                              ) : (
+                                <ArrowDown className="w-3 h-3" />
+                              )
+                            ) : (
+                              <ArrowUpDown className="w-3 h-3 text-gray-300" />
+                            )}
+                          </button>
+                          <div className="mt-2 normal-case">
+                            {column.type === 'category' ? (
+                              <select
+                                value={statsColumnFilters[column.key]}
+                                onChange={(e) => handleStatsFilterChange(column.key, e.target.value)}
+                                className="w-full text-xs font-normal border border-gray-200 rounded px-1.5 py-1 text-gray-700"
+                              >
+                                <option value="">Все</option>
+                                <option value="A">A</option>
+                                <option value="B">B</option>
+                                <option value="C">C</option>
+                              </select>
+                            ) : (
+                              <input
+                                type="text"
+                                value={statsColumnFilters[column.key]}
+                                onChange={(e) => handleStatsFilterChange(column.key, e.target.value)}
+                                placeholder="Фильтр..."
+                                className="w-full text-xs font-normal border border-gray-200 rounded px-1.5 py-1 text-gray-700 placeholder:text-gray-400"
+                              />
+                            )}
+                          </div>
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {statsRows.map(({ product, turnoverDays, marginCategory, turnoverCategory, abcCategory }) => (
+                      <tr key={product.sku} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {product.sku}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {product.margin.toLocaleString()} ₽
+                        </td>
+                        <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium ${
+                          product.margin_percent > 40 ? 'text-emerald-600' :
+                          product.margin_percent > 20 ? 'text-yellow-600' :
+                          'text-red-600'
+                        }`}>
+                          {product.margin_percent.toFixed(1)}%
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {turnoverDays}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${ABC_BADGE_STYLES[marginCategory]}`}>
+                            {marginCategory}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${ABC_BADGE_STYLES[turnoverCategory]}`}>
+                            {turnoverCategory}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${ABC_BADGE_STYLES[abcCategory]}`}>
+                            {abcCategory}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                    {statsRows.length === 0 && (
+                      <tr>
+                        <td colSpan={7} className="px-6 py-8 text-center text-sm text-gray-500">
+                          Нет данных
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
+
           </>
         )}
       </main>
