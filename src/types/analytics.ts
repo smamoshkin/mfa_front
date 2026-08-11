@@ -49,6 +49,7 @@ export interface RentabilityPeriod {
     margin_percent: number;
     margin_per_unit: number;
     logistics_per_unit: number;
+    turnover_days: number;
   }
   
   export interface RentabilitySummary {

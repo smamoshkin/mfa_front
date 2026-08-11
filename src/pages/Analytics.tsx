@@ -21,8 +21,6 @@ function getMarginCategory(cumulativeSharePercent: number): AbcCategory {
   return 'C';
 }
 
-// Оборачиваемость пока не приходит с бэка (всегда 0) — до появления реальных остатков
-// считаем товар худшей категорией, чтобы не завышать итоговую оценку
 function getTurnoverCategory(turnoverDays: number): AbcCategory {
   if (turnoverDays <= 0) return 'C';
   if (turnoverDays <= 30) return 'A';
@@ -47,7 +45,7 @@ function withAbcCategories(products: RentabilityResponse['products']) {
     cumulative += product.margin;
     const marginShare = totalMargin !== 0 ? (cumulative / totalMargin) * 100 : 100;
     const marginCategory = getMarginCategory(marginShare);
-    const turnoverDays = 0; // TODO: подставить реальную оборачиваемость, когда появятся остатки с бэка
+    const turnoverDays = product.turnover_days;
     const turnoverCategory = getTurnoverCategory(turnoverDays);
 
     return {
@@ -669,7 +667,7 @@ export default function Analytics() {
                           {product.margin_percent.toFixed(1)}%
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                          {turnoverDays}
+                          {turnoverDays.toFixed(1)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold ${ABC_BADGE_STYLES[marginCategory]}`}>
