@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Package, DollarSign, Tag, Barcode, Image, Info } from 'lucide-react';
+import { X, Package, DollarSign, Tag, Barcode, Image, Info, AlertTriangle } from 'lucide-react';
 import type { Product } from '../types/api';
 
 interface ProductModalProps {
@@ -7,9 +7,11 @@ interface ProductModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSave: (productData: any) => Promise<void>;
+  // Полный список товаров текущего тенанта — для предупреждения о дубле marketplace_sku
+  existingProducts?: Product[];
 }
 
-export default function ProductModal({ product, isOpen, onClose, onSave }: ProductModalProps) {
+export default function ProductModal({ product, isOpen, onClose, onSave, existingProducts = [] }: ProductModalProps) {
   const [formData, setFormData] = useState({
     sku: '',
     marketplace_sku: '',
@@ -22,19 +24,25 @@ export default function ProductModal({ product, isOpen, onClose, onSave }: Produ
   });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  // Предупреждение о дубле marketplace_sku (неблокирующее)
+  const [duplicateWarning, setDuplicateWarning] = useState<Product[]>([]);
+  const [confirmedDuplicate, setConfirmedDuplicate] = useState(false);
 
   // Инициализация формы при открытии модалки или изменении продукта
   useEffect(() => {
     if (product) {
       setFormData({
-        sku: product.sku,
-        marketplace_sku: product.marketplace_sku,
-        name: product.name,
-        description: product.description,
-        category: product.category,
-        barcode: product.barcode,
-        foto: product.foto,
-        is_active: product.is_active,
+        // Строковые поля бэк может вернуть как null (товары из синка) —
+        // приводим к '', иначе React ругается на value={null} у
+        // контролируемых input/textarea
+        sku: product.sku || '',
+        marketplace_sku: product.marketplace_sku || '',
+        name: product.name || '',
+        description: product.description || '',
+        category: product.category || '',
+        barcode: product.barcode || '',
+        foto: product.foto || '',
+        is_active: product.is_active ?? true,
       });
     } else {
       // Сброс формы для нового товара
@@ -50,7 +58,22 @@ export default function ProductModal({ product, isOpen, onClose, onSave }: Produ
       });
     }
     setError('');
+    setDuplicateWarning([]);
+    setConfirmedDuplicate(false);
   }, [product, isOpen]);
+
+  // Активные товары с тем же marketplace_sku (кроме текущего редактируемого).
+  // Дубль marketplace_sku допустим (разные sku) — это только предупреждение.
+  const findActiveDuplicates = (): Product[] => {
+    const value = formData.marketplace_sku.trim().toLowerCase();
+    if (!value) return [];
+    return existingProducts.filter(
+      (p) =>
+        p.id !== product?.id &&
+        p.is_active &&
+        (p.marketplace_sku || '').trim().toLowerCase() === value
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -70,11 +93,24 @@ export default function ProductModal({ product, isOpen, onClose, onSave }: Produ
       return;
     }
 
+    // Предупреждение о дубле marketplace_sku: первый сабмит показывает
+    // предупреждение и запоминает подтверждение, повторный — сохраняет
+    const duplicates = findActiveDuplicates();
+    if (duplicates.length > 0 && !confirmedDuplicate) {
+      setDuplicateWarning(duplicates);
+      setConfirmedDuplicate(true);
+      setIsLoading(false);
+      return;
+    }
+
     try {
       await onSave(formData);
       onClose();
     } catch (err: any) {
       setError(err.message || 'Ошибка сохранения товара');
+      // после ошибки сбрасываем подтверждение — при повторной попытке
+      // предупреждение (если дубль ещё актуален) покажется снова
+      setConfirmedDuplicate(false);
     } finally {
       setIsLoading(false);
     }
@@ -85,6 +121,11 @@ export default function ProductModal({ product, isOpen, onClose, onSave }: Produ
       ...prev,
       [field]: value,
     }));
+    // При изменении артикула WB предупреждение о дубле теряет актуальность
+    if (field === 'marketplace_sku') {
+      setDuplicateWarning([]);
+      setConfirmedDuplicate(false);
+    }
   };
 
   if (!isOpen) return null;
@@ -121,6 +162,27 @@ export default function ProductModal({ product, isOpen, onClose, onSave }: Produ
             <div className="mb-6 p-3 bg-red-50 border border-red-200 rounded-lg flex items-start gap-2">
               <Info className="w-5 h-5 text-red-500 mt-0.5 flex-shrink-0" />
               <p className="text-red-700 text-sm">{error}</p>
+            </div>
+          )}
+
+          {duplicateWarning.length > 0 && (
+            <div className="mb-6 p-3 bg-yellow-50 border border-yellow-300 rounded-lg flex items-start gap-2">
+              <AlertTriangle className="w-5 h-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+              <div className="text-yellow-800 text-sm">
+                <p className="font-medium">
+                  У вас уже есть активные товары с артикулом WB «{formData.marketplace_sku}»:
+                </p>
+                <ul className="list-disc ml-5 mt-1">
+                  {duplicateWarning.map((p) => (
+                    <li key={p.id}>
+                      {p.name || 'Без названия'} (SKU: {p.sku})
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-1">
+                  Создание не блокируется. Если это намеренно — нажмите «Всё равно сохранить».
+                </p>
+              </div>
             </div>
           )}
 
@@ -297,6 +359,8 @@ export default function ProductModal({ product, isOpen, onClose, onSave }: Produ
                   <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
                   Сохранение...
                 </>
+              ) : duplicateWarning.length > 0 ? (
+                'Всё равно сохранить'
               ) : product ? (
                 'Сохранить изменения'
               ) : (

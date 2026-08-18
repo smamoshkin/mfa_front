@@ -674,6 +674,7 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
           isOpen={isModalOpen}
           onClose={() => setIsModalOpen(false)}
           onSave={handleSaveProduct}
+          existingProducts={products}
         />
       )}
 
