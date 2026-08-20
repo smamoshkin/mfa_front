@@ -1,6 +1,7 @@
 // src/pages/Taxes.tsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Calendar, TrendingUp, CheckCircle, XCircle, BarChart3, Package, User, Activity, RefreshCw } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, TrendingUp, CheckCircle, XCircle, BarChart3, Package, User, Activity } from 'lucide-react';
+import LoadingOverlay from '../components/LoadingOverlay';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { taxApi } from '../api/taxApi';
@@ -187,7 +188,8 @@ export default function Taxes() {
         setSelectedRateInfo(null);
     };
 
-  if (loading) {
+  // Полноэкранная загрузка — только при самом первом заходе, дальше — оверлей
+  if (loading && taxRates.length === 0) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
         <div className="text-center">
@@ -200,6 +202,8 @@ export default function Taxes() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <LoadingOverlay show={loading} />
+
       {/* Шапка с навигацией */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -235,10 +239,6 @@ export default function Taxes() {
             </div>
             
             <div className="flex items-center space-x-4">
-              <button className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition">
-                <RefreshCw className="w-5 h-5" />
-              </button>
-              
               <div className="relative">
                 <Link to="/profile" className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-lg transition">
                   <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">

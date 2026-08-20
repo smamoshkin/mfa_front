@@ -2,8 +2,9 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BarChart3, DollarSign, Package, PieChart, Wallet, Megaphone, Warehouse, Truck, Receipt, Percent,
-  Download, Filter, Calendar, RefreshCw, AlertCircle, User, ArrowUp, ArrowDown, ArrowUpDown
+  Download, Filter, Calendar, AlertCircle, User, ArrowUp, ArrowDown, ArrowUpDown
 } from 'lucide-react';
+import LoadingOverlay from '../components/LoadingOverlay';
 import { useAuthStore } from '../store/authStore';
 import AnalyticsFiltersComponent from '../components/AnalyticsFilters';
 import { analyticsApi } from '../api/analyticsApi';
@@ -315,6 +316,8 @@ export default function Analytics() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <LoadingOverlay show={isLoading && !!analyticsData} />
+
       {/* Шапка */}
       <header className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -350,15 +353,6 @@ export default function Analytics() {
             </div>
             
             <div className="flex items-center space-x-4">
-              <button
-                onClick={loadAnalyticsData}
-                disabled={isLoading}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition disabled:opacity-50"
-                title="Обновить данные"
-              >
-                <RefreshCw className={`w-5 h-5 ${isLoading ? 'animate-spin' : ''}`} />
-              </button>
-              
               <div className="flex space-x-2">
                 <button
                   onClick={() => handleExport('excel')}
