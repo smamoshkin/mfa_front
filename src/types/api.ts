@@ -80,3 +80,31 @@ export interface Product {
     created_by: string;
     created_at: string;
   }
+// ---------------------------------------------------------------------------
+// Импорт себестоимостей из файла
+// ---------------------------------------------------------------------------
+
+export interface CostImportRowReport {
+  row_num: number;
+  sku?: string | null;
+  product_name?: string | null;
+  cost?: number | string | null;
+  start_date?: string | null;
+  action: 'create' | 'update' | 'error';
+  message?: string | null;
+}
+
+export interface CostImportSummary {
+  created: number;
+  updated: number;
+  closed_periods: number;
+  errors: number;
+  total_rows: number;
+}
+
+export interface CostImportReport {
+  dry_run: boolean;
+  rows: CostImportRowReport[];
+  summary: CostImportSummary;
+  mv_refresh_ms?: number | null;
+}

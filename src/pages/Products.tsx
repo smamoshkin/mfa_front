@@ -4,6 +4,7 @@ import { productsApi } from '../api/productsApi';
 import type { Product, ProductWithMetrics } from '../types/api';
 import ProductModal from '../components/ProductModal';
 import ProductDeleteModal from '../components/ProductDeleteModal';
+import CostImportModal from '../components/CostImportModal';
 import ImageTooltip from '../components/ImageTooltip';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
@@ -19,6 +20,7 @@ export default function Products() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<ProductWithMetrics | null>(null);
   const [isDeleteProductOpen, setIsDeleteProductOpen] = useState(false);
+  const [isCostImportOpen, setIsCostImportOpen] = useState(false);
   // 1. Добавьте состояние для позиционирования вверху компонента
   const [tooltipState, setTooltipState] = useState<{
     isVisible: boolean;
@@ -285,13 +287,22 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
             <h1 className="text-3xl font-bold text-gray-900">Каталог товаров</h1>
             <p className="text-gray-600 mt-2">Управление товарами и отслеживание показателей</p>
           </div>
-          <button
-            onClick={handleAddProduct}
-            className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition flex items-center shadow-lg"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Добавить товар
-          </button>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setIsCostImportOpen(true)}
+              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition flex items-center shadow-lg"
+            >
+              <DollarSign className="w-5 h-5 mr-2" />
+              Себестоимости из файла
+            </button>
+            <button
+              onClick={handleAddProduct}
+              className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition flex items-center shadow-lg"
+            >
+              <Plus className="w-5 h-5 mr-2" />
+              Добавить товар
+            </button>
+          </div>
         </div>
 
         {/* Фильтры и поиск */}
@@ -685,6 +696,15 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
           isOpen={isDeleteProductOpen}
           onClose={() => setIsDeleteProductOpen(false)}
           onSave={handleProductTermination}
+        />
+      )}
+
+      {/* Модалка импорта себестоимостей из файла */}
+      {isCostImportOpen && (
+        <CostImportModal
+          isOpen={isCostImportOpen}
+          onClose={() => setIsCostImportOpen(false)}
+          onImported={loadProducts}
         />
       )}
     </div>

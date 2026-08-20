@@ -1,5 +1,5 @@
 import axiosClient from './axiosClient';
-import type { Product, ProductCost, CurrentCost, CreateProductCostRequest } from '../types/api';
+import type { Product, ProductCost, CurrentCost, CreateProductCostRequest, CostImportReport } from '../types/api';
 
 export const productsApi = {
   // Получение списка товаров
@@ -70,5 +70,25 @@ export const productsApi = {
   // Удаление себестоимости
   deleteProductCost: async (id: number): Promise<void> => {
     await axiosClient.delete(`/product-costs/${id}`);
+  },
+
+  // Скачать xlsx-шаблон себестоимостей с текущими данными (раундтрип)
+  getCostTemplate: async (): Promise<Blob> => {
+    const response = await axiosClient.get('/product-costs/template', {
+      responseType: 'blob',
+    });
+    return response.data;
+  },
+
+  // Импорт себестоимостей из файла.
+  // dryRun=true — предпросмотр (отчёт без записи), dryRun=false — применение
+  importCosts: async (file: File, dryRun: boolean): Promise<CostImportReport> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('dry_run', String(dryRun));
+    const response = await axiosClient.post('/product-costs/import', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+    return response.data;
   },
 };
