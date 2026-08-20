@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import {
   BarChart3, DollarSign, Package, PieChart, Wallet, Megaphone, Warehouse, Truck, Receipt, Percent,
-  Download, Filter, Calendar, AlertCircle, User, ArrowUp, ArrowDown, ArrowUpDown
+  Download, AlertCircle, User, ArrowUp, ArrowDown, ArrowUpDown
 } from 'lucide-react';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { useAuthStore } from '../store/authStore';
@@ -224,7 +224,7 @@ export default function Analytics() {
         const filename = `analytics_${dateFromStr}_${dateToStr}.xlsx`;
         
         // Скачиваем файл
-        downloadBlob(blob, filename, 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+        downloadBlob(blob, filename);
         
         // Показываем сообщение об успехе
         console.log('Экспорт завершен успешно!');
@@ -245,7 +245,7 @@ export default function Analytics() {
   };
   
   // Вспомогательная функция для скачивания файла
-  const downloadBlob = (blob: Blob, filename: string, mimeType: string) => {
+  const downloadBlob = (blob: Blob, filename: string) => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -399,7 +399,7 @@ export default function Analytics() {
               <p className="text-red-700 font-medium">Ошибка загрузки данных</p>
               <p className="text-red-600 text-sm">{error}</p>
               <button
-                onClick={loadAnalyticsData}
+                onClick={() => loadAnalyticsData()}
                 className="mt-2 px-4 py-2 text-sm bg-red-100 text-red-700 rounded-lg hover:bg-red-200 transition"
               >
                 Повторить попытку

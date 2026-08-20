@@ -46,7 +46,7 @@ export const analyticsApi = {
   },
 
   // Экспорт в PDF (если будет реализован)
-  exportPdf: async (filters: AnalyticsFilters): Promise<Blob> => {
+  exportPdf: async (_filters: AnalyticsFilters): Promise<Blob> => {
     // Пока возвращаем ошибку или заглушку
     throw new Error('Экспорт в PDF временно недоступен');
   },

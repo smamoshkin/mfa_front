@@ -7,6 +7,7 @@ export const productsApi = {
     category?: string;
     search?: string;
     active?: boolean;
+    limit?: number;
   }): Promise<Product[]> => {
     const response = await axiosClient.get('/products', { params });
     return response.data;

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Package, DollarSign, Tag, Barcode, Image, Info, AlertTriangle } from 'lucide-react';
+import { X, Package, Tag, Barcode, Image, Info, AlertTriangle } from 'lucide-react';
 import type { Product } from '../types/api';
 
 interface ProductModalProps {

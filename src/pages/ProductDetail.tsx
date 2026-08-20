@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom';
-import { 
-  ArrowLeft, Package, DollarSign, Calendar, TrendingUp, 
-  BarChart3, Edit2, Plus, Trash2, ExternalLink,
-  ShoppingCart, Tag, Barcode, Image, Info, AlertCircle
+import { useParams, useNavigate } from 'react-router-dom';
+import {
+  ArrowLeft, Package, DollarSign,
+  Edit2, Plus, Trash2,
+  AlertCircle
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
@@ -16,7 +16,7 @@ import { ru } from 'date-fns/locale';
 //   fetchProductWithMetrics
 // } from '../api/mockProducts';
 import { productsApi } from "../api/productsApi";
-import type { Product, ProductCost, CurrentCost, ProductWithMetrics } from '../types/api';
+import type { ProductCost, CurrentCost, ProductWithMetrics } from '../types/api';
 import CostModal from '../components/CostModal';
 
 export default function ProductDetail() {

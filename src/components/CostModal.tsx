@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, DollarSign, Calendar, User, Package, Info, AlertCircle, AlertTriangle } from 'lucide-react';
+import { X, DollarSign, Calendar, User, Package, AlertCircle, AlertTriangle } from 'lucide-react';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 import type { ProductCost, CreateProductCostRequest } from '../types/api';

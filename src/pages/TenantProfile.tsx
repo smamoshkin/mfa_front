@@ -10,7 +10,6 @@ import {
 } from 'lucide-react';
 import { authApi } from '../api/authApi';
 import { format } from 'date-fns';
-import { ru } from 'date-fns/locale';
 
 // Схемы валидации
 const profileSchema = z.object({
@@ -33,7 +32,7 @@ type ProfileFormData = z.infer<typeof profileSchema>;
 type PasswordFormData = z.infer<typeof passwordSchema>;
 
 export default function TenantProfile() {
-  const { user, logout, updateUser, setWbApiKey } = useAuthStore();
+  const { user, updateUser, setWbApiKey } = useAuthStore();
   const [activeTab, setActiveTab] = useState<'profile' | 'security' | 'api'>('profile');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState({
@@ -142,12 +141,6 @@ export default function TenantProfile() {
       hour: '2-digit',
       minute: '2-digit'
     });
-  };
-
-  const maskApiKey = (key?: string) => {
-    if (!key) return 'Не указан';
-    if (key.length <= 8) return '••••••••';
-    return `••••${key.slice(-4)}`;
   };
 
   return (

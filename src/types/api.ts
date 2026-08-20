@@ -55,6 +55,8 @@ export interface Product {
   // Расширенный продукт с себестоимостью и метриками (для фронта)
   export interface ProductWithMetrics extends Product {
     current_cost?: number;
+    // Поле в API пока не возвращается (блок "Расчет прибыли" не отрисовывается) — оставлено на будущее
+    currentPrice?: number;
     last_month_sales?: number;
     last_month_revenue?: number;
     profitability?: number;

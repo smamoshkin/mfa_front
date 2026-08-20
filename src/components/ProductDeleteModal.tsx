@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Package, DollarSign, Tag, Barcode, Image, Info, Trash2 } from 'lucide-react';
+import { X, Package, Tag, Barcode, Image, Trash2 } from 'lucide-react';
 import type { Product } from '../types/api';
 
 interface ProductModalProps {
@@ -21,7 +21,7 @@ export default function ProductDeleteModal({ product, isOpen, onClose, onSave }:
     is_active: true,
   });
   const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [, setError] = useState('');
 
   // Инициализация формы при открытии модалки или изменении продукта
   useEffect(() => {

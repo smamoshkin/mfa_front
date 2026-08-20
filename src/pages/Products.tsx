@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, Plus, Edit2, Trash2, Eye, DollarSign, Package, TrendingUp, BarChart3, X, CircleDollarSign, User } from 'lucide-react';
+import { Search, Filter, Plus, Edit2, Trash2, DollarSign, Package, X, CircleDollarSign, User } from 'lucide-react';
 import { productsApi } from '../api/productsApi';
-import type { Product, ProductWithMetrics } from '../types/api';
+import type { ProductWithMetrics } from '../types/api';
 import ProductModal from '../components/ProductModal';
 import ProductDeleteModal from '../components/ProductDeleteModal';
 import CostImportModal from '../components/CostImportModal';
-import ImageTooltip from '../components/ImageTooltip';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 
@@ -18,6 +17,8 @@ export default function Products() {
   const [selectedCategory, setSelectedCategory] = useState<string>('');
   const [showActiveOnly, setShowActiveOnly] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Сообщение об ошибке загрузки (заполняется в loadProducts)
+  const [, setError] = useState('');
   const [selectedProduct, setSelectedProduct] = useState<ProductWithMetrics | null>(null);
   const [isDeleteProductOpen, setIsDeleteProductOpen] = useState(false);
   const [isCostImportOpen, setIsCostImportOpen] = useState(false);
@@ -109,11 +110,6 @@ export default function Products() {
   const handleDeleteProduct = ( product: ProductWithMetrics ) => {
     setSelectedProduct(product);
     setIsDeleteProductOpen(true);
-  };
-
-  const handleViewProduct = (product: ProductWithMetrics) => {
-    // В будущем здесь будет переход на детальную страницу
-    console.log('Просмотр товара:', product);
   };
 
   const handleAddProduct = () => {
@@ -635,7 +631,7 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
                   src={tooltipState.imageUrl}
                   alt={tooltipState.alt}
                   className="w-full h-full object-cover"
-                  onError={(e) => {
+                  onError={() => {
                     // Если изображение не загрузилось, скрываем тултип
                     hideTooltip();
                   }}

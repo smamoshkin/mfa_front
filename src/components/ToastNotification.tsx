@@ -1,6 +1,6 @@
 // src/components/ToastNotification.tsx
 import { Toaster } from 'react-hot-toast';
-import { X, CheckCircle, AlertCircle, Info, Loader2 } from 'lucide-react';
+import { CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 
 export default function ToastNotification() {
   return (

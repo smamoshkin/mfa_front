@@ -101,8 +101,12 @@ export default function Login() {
                     placeholder="Ваше имя"
                   />
                 </div>
-                {errors.name && (
-                  <p className="mt-2 text-sm text-red-600">{errors.name.message}</p>
+                {/* errors.name существует только в режиме регистрации —
+                    useForm типизирован union-схемой, поэтому локальное сужение типа */}
+                {(errors as { name?: { message?: string } }).name && (
+                  <p className="mt-2 text-sm text-red-600">
+                    {(errors as { name?: { message?: string } }).name?.message}
+                  </p>
                 )}
               </div>
             )}

@@ -1,6 +1,6 @@
 // src/pages/Taxes.tsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Calendar, TrendingUp, CheckCircle, XCircle, BarChart3, Package, User, Activity } from 'lucide-react';
+import { Plus, Edit, Trash2, Calendar, TrendingUp, CheckCircle, XCircle, BarChart3, User } from 'lucide-react';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { Link } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
