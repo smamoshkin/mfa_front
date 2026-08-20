@@ -7,7 +7,7 @@ RUN npm ci
 COPY . .
 
 # На проде фронт ходит на бэк через внешние nginx-ворота (/api/)
-ARG VITE_API_BASE_URL=/api/
+ARG VITE_API_BASE_URL=/api
 ENV VITE_API_BASE_URL=$VITE_API_BASE_URL
 RUN npm run build
 
