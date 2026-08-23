@@ -1,31 +1,28 @@
 // src/pages/Taxes.tsx
-import React, { useState, useEffect } from 'react';
-import { Plus, Edit, Trash2, Calendar, TrendingUp, CheckCircle, XCircle, BarChart3, User } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Edit, Trash2, Calendar, TrendingUp, CheckCircle, XCircle } from 'lucide-react';
 import LoadingOverlay from '../components/LoadingOverlay';
-import { Link } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
 import { taxApi } from '../api/taxApi';
 import type { TaxRate, TaxRateFormData } from '../types/tax';
 import toast from 'react-hot-toast';
 import ClosePeriodModal from '../components/ClosePeriodModal';
+import TaxRateModal from '../components/TaxRateModal';
+import TaxRateDeleteModal from '../components/TaxRateDeleteModal';
 
 export default function Taxes() {
-  const { user, logout } = useAuthStore();
   const [taxRates, setTaxRates] = useState<TaxRate[]>([]);
   const [loading, setLoading] = useState(true);
   const [currentTaxRate, setCurrentTaxRate] = useState<TaxRate | null>(null);
-  
-  // Состояния для формы
-  const [showForm, setShowForm] = useState(false);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [formData, setFormData] = useState<TaxRateFormData>({
-    tax_rate: 20,
-    start_date: new Date().toISOString().split('T')[0],
-    end_date: '',
-    created_by: ''
-  });
 
-  // Состояния для модального окна
+  // Модалка создания/редактирования ставки
+  const [isRateModalOpen, setIsRateModalOpen] = useState(false);
+  const [editingRate, setEditingRate] = useState<TaxRate | null>(null);
+
+  // Модалка удаления ставки (кастомное подтверждение вместо window.confirm)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [deletingRate, setDeletingRate] = useState<TaxRate | null>(null);
+
+  // Состояния для модального окна закрытия периода
   const [closeModalOpen, setCloseModalOpen] = useState(false);
   const [selectedRateId, setSelectedRateId] = useState<number | null>(null);
   const [selectedRateInfo, setSelectedRateInfo] = useState<{
@@ -57,79 +54,64 @@ export default function Taxes() {
       const data = await taxApi.getCurrentTaxRate();
       // Находим полную запись в списке
       const allRates = await taxApi.getTaxRates();
-      const current = allRates.find(rate => 
-        rate.start_date === data.start_date && 
+      const current = allRates.find(rate =>
+        rate.start_date === data.start_date &&
         rate.tax_rate === data.tax_rate
       );
       setCurrentTaxRate(current || null);
     } catch (error) {
+      // Активной ставки нет (например, период закрыли) — важно обнулить,
+      // иначе карточка продолжит показывать устаревшую ставку
       console.error('Ошибка загрузки текущей ставки:', error);
+      setCurrentTaxRate(null);
     }
   };
 
-  // Обработчики формы
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({
-      ...prev,
-      [name]: name === 'tax_rate' ? parseFloat(value) || 0 : value
-    }));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    try {
-      if (editingId) {
-        // Редактирование
-        await taxApi.updateTaxRate(editingId, {
-          ...formData,
-          end_date: formData.end_date || null
-        });
-        toast.success('Ставка успешно обновлена');
-      } else {
-        // Создание
-        await taxApi.createTaxRate({
-          ...formData,
-          end_date: formData.end_date || null
-        });
-        toast.success('Ставка успешно создана');
-      }
-      
-      // Сброс формы и обновление данных
-      resetForm();
-      await loadTaxRates();
-      await loadCurrentTaxRate();
-    } catch (error: any) {
-      console.error('Ошибка сохранения ставки:', error);
-      toast.error(error.response?.data?.detail || 'Ошибка сохранения ставки');
-    }
-  };
-
+  // Обработчики модалки создания/редактирования
   const handleEdit = (taxRate: TaxRate) => {
-    setEditingId(taxRate.id);
-    setFormData({
-      tax_rate: taxRate.tax_rate,
-      start_date: taxRate.start_date.split('T')[0],
-      end_date: taxRate.end_date ? taxRate.end_date.split('T')[0] : '',
-      created_by: taxRate.created_by || ''
-    });
-    setShowForm(true);
+    setEditingRate(taxRate);
+    setIsRateModalOpen(true);
   };
 
-  const handleDelete = async (id: number) => {
-    if (!window.confirm('Вы уверены, что хотите удалить эту налоговую ставку?')) {
-      return;
-    }
+  const handleCreate = () => {
+    setEditingRate(null);
+    setIsRateModalOpen(true);
+  };
 
+  const handleSaveRate = async (data: TaxRateFormData) => {
+    if (editingRate) {
+      await taxApi.updateTaxRate(editingRate.id, {
+        ...data,
+        end_date: data.end_date || null
+      });
+      toast.success('Ставка успешно обновлена');
+    } else {
+      await taxApi.createTaxRate({
+        ...data,
+        end_date: data.end_date || null
+      });
+      toast.success('Ставка успешно создана');
+    }
+    await loadTaxRates();
+    await loadCurrentTaxRate();
+  };
+
+  const handleDelete = (taxRate: TaxRate) => {
+    setDeletingRate(taxRate);
+    setIsDeleteModalOpen(true);
+  };
+
+  const confirmDeleteRate = async () => {
+    if (!deletingRate) return;
     try {
-      await taxApi.deleteTaxRate(id);
+      await taxApi.deleteTaxRate(deletingRate.id);
       toast.success('Ставка успешно удалена');
       await loadTaxRates();
       await loadCurrentTaxRate();
     } catch (error) {
       console.error('Ошибка удаления ставки:', error);
       toast.error('Не удалось удалить ставку');
+      throw error;
     }
   };
 
@@ -146,17 +128,6 @@ export default function Taxes() {
       console.error('Ошибка закрытия периода:', error);
       throw error; // Пробрасываем ошибку для обработки в модальном окне
     }
-  };
-
-  const resetForm = () => {
-    setShowForm(false);
-    setEditingId(null);
-    setFormData({
-      tax_rate: 20,
-      start_date: new Date().toISOString().split('T')[0],
-      end_date: '',
-      created_by: ''
-    });
   };
 
   // Форматирование даты
@@ -191,345 +162,238 @@ export default function Taxes() {
   // Полноэкранная загрузка — только при самом первом заходе, дальше — оверлей
   if (loading && taxRates.length === 0) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="min-h-screen bg-app flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Загрузка данных...</p>
+          <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-app-2">Загрузка данных...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+    <div>
       <LoadingOverlay show={loading} />
 
-      {/* Шапка с навигацией */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                  <BarChart3 className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">WB Analytics</span>
-              </div>
-              
-              <nav className="ml-10 flex space-x-8">
-                <Link
-                  to="/analytics"
-                  className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300 transition"
-                >
-                  Аналитика
-                </Link>
-                <Link
-                  to="/products"
-                  className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300 transition"
-                >
-                  Товары
-                </Link>
-                <Link
-                  to="/taxes"
-                  className="text-blue-600 font-medium border-b-2 border-blue-600 px-1 pb-1 transition"
-                >
-                  Налоговые ставки
-                </Link>
-              </nav>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Link to="/profile" className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-lg transition">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                  <span className="font-medium text-gray-700">{user?.name || user?.email}</span>
-                </Link>
-              </div>
-              
-              <button
-                onClick={logout}
-                className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
-              >
-                Выйти
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Заголовок страницы */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">
+              <h1 className="text-3xl font-bold text-app">
                 Налоговые ставки
               </h1>
-              <p className="text-gray-600 mt-2">
+              <p className="text-app-2 mt-2">
                 Управление налоговыми ставками для расчета отчетности
               </p>
             </div>
             <button
-              onClick={() => setShowForm(!showForm)}
-              className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition flex items-center"
+              data-tour="taxes-add"
+              onClick={handleCreate}
+              className="px-4 py-2 bg-gradient-to-r from-primary to-primary-dark text-white font-medium rounded-lg hover:from-primary-dark hover:to-primary transition flex items-center"
             >
               <Plus className="w-5 h-5 mr-2" />
-              {showForm ? 'Отмена' : 'Новая ставка'}
+              Новая ставка
             </button>
           </div>
         </div>
 
-        {/* Текущая ставка */}
+        {/* Нет действующей ставки — период закрыли, ставки кончились или их ещё не создавали */}
+        {!currentTaxRate && (
+          <div data-tour="taxes-current" className="mb-8 bg-sand/40 border border-sand rounded-xl p-6 flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center">
+              <div className="p-3 bg-sand rounded-lg mr-4">
+                <XCircle className="w-6 h-6 text-sand-ink" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-app">Нет действующей ставки</h3>
+                <p className="text-app-2 text-sm mt-1">
+                  Налог в отчётности рассчитываться не будет — создайте новую ставку
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Текущая ставка — единственное место, где она отображается */}
         {currentTaxRate && (
-          <div className="mb-8 bg-white rounded-xl shadow-sm border border-green-200 p-6">
-            <div className="flex items-center justify-between">
+          <div data-tour="taxes-current" className="mb-8 bg-card rounded-xl shadow-sm border border-card p-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center">
-                <div className="p-3 bg-green-100 rounded-lg mr-4">
-                  <TrendingUp className="w-6 h-6 text-green-600" />
+                <div className="p-3 bg-mint rounded-lg mr-4">
+                  <TrendingUp className="w-6 h-6 text-ink" />
                 </div>
                 <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Текущая ставка налога</h3>
+                  <h3 className="text-lg font-semibold text-app">Текущая ставка налога</h3>
                   <div className="flex items-center mt-1">
-                    <span className="text-3xl font-bold text-gray-900 mr-3">
+                    <span className="text-3xl font-bold text-app mr-3">
                       {currentTaxRate.tax_rate}%
                     </span>
-                    <span className="px-2 py-1 bg-green-100 text-green-800 text-sm font-medium rounded-full">
+                    <span className="px-2 py-1 bg-mint text-ink text-sm font-medium rounded-full">
                       Активна
                     </span>
                   </div>
-                  <p className="text-gray-600 text-sm mt-2">
+                  <p className="text-app-2 text-sm mt-2">
                     Действует с {formatDate(currentTaxRate.start_date)}
                     {currentTaxRate.end_date && ` по ${formatDate(currentTaxRate.end_date)}`}
                   </p>
                 </div>
               </div>
-              <button
-                onClick={() => handleEdit(currentTaxRate)}
-                className="px-4 py-2 text-blue-600 hover:bg-blue-50 font-medium rounded-lg transition"
-              >
-                <Edit className="w-4 h-4" />
-              </button>
+
+              {/* Кнопки в стиле строк таблицы: белые, объёмные, с цветной тенью */}
+              <div className="flex items-stretch gap-2">
+                <button
+                  onClick={() => handleEdit(currentTaxRate)}
+                  className="px-3 py-2 min-h-[44px] bg-card text-blue-600 rounded-lg border border-blue-200/60 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/40 hover:-translate-y-px active:translate-y-0 active:shadow-sm transition flex items-center gap-1.5"
+                  title="Редактировать"
+                >
+                  <Edit className="w-4 h-4" />
+                  <span className="text-xs font-medium hidden sm:inline">Редактировать</span>
+                </button>
+
+                {!currentTaxRate.end_date && (
+                  <button
+                    onClick={() => openCloseModal(currentTaxRate.id, currentTaxRate.start_date, currentTaxRate.tax_rate)}
+                    className="px-3 py-2 min-h-[44px] bg-card text-orange-600 rounded-lg border border-orange-200/60 shadow-md shadow-orange-500/25 hover:shadow-lg hover:shadow-orange-500/40 hover:-translate-y-px active:translate-y-0 active:shadow-sm transition flex items-center gap-1.5"
+                    title="Закрыть период"
+                  >
+                    <Calendar className="w-4 h-4" />
+                    <span className="text-xs font-medium hidden sm:inline">Закрыть период</span>
+                  </button>
+                )}
+
+                <button
+                  onClick={() => handleDelete(currentTaxRate)}
+                  className="px-3 py-2 min-h-[44px] bg-card text-red-600 rounded-lg border border-red-200/60 shadow-md shadow-red-500/25 hover:shadow-lg hover:shadow-red-500/40 hover:-translate-y-px active:translate-y-0 active:shadow-sm transition flex items-center gap-1.5"
+                  title="Удалить"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span className="text-xs font-medium hidden sm:inline">Удалить</span>
+                </button>
+              </div>
             </div>
           </div>
         )}
 
-        {/* Форма создания/редактирования */}
-        {showForm && (
-          <div className="mb-8 bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">
-              {editingId ? 'Редактировать ставку' : 'Новая налоговая ставка'}
-            </h2>
-            
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ставка налога (%)
-                  </label>
-                  <input
-                    type="number"
-                    name="tax_rate"
-                    value={formData.tax_rate}
-                    onChange={handleInputChange}
-                    step="0.01"
-                    min="0"
-                    max="100"
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Дата начала *
-                  </label>
-                  <input
-                    type="date"
-                    name="start_date"
-                    value={formData.start_date}
-                    onChange={handleInputChange}
-                    required
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Дата окончания
-                  </label>
-                  <input
-                    type="date"
-                    name="end_date"
-                    value={formData.end_date}
-                    onChange={handleInputChange}
-                    min={formData.start_date}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                    placeholder="Оставьте пустым для бессрочного действия"
-                  />
-                  <p className="text-xs text-gray-500 mt-1">
-                    Оставьте пустым для бессрочного действия
-                  </p>
-                </div>
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Кто внес изменение (опционально)
-                </label>
-                <input
-                  type="text"
-                  name="created_by"
-                  value={formData.created_by}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
-                  placeholder="Имя пользователя"
-                />
-              </div>
-              
-              <div className="flex justify-end space-x-3 pt-4">
-                <button
-                  type="button"
-                  onClick={resetForm}
-                  className="px-4 py-2 text-gray-700 hover:bg-gray-100 font-medium rounded-lg transition"
-                >
-                  Отмена
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-lg hover:from-blue-700 hover:to-purple-700 transition"
-                >
-                  {editingId ? 'Сохранить изменения' : 'Создать ставку'}
-                </button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* Таблица ставок */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
-          <div className="px-6 py-4 border-b border-gray-200">
-            <h2 className="text-lg font-semibold text-gray-900">История налоговых ставок</h2>
-            <p className="text-gray-600 text-sm mt-1">
-              Все установленные налоговые ставки в хронологическом порядке
+        {/* Таблица ставок: только история — текущая ставка живёт в карточке выше */}
+        <div data-tour="taxes-table" className="bg-card rounded-xl shadow-sm border border-card overflow-hidden">
+          <div className="px-4 py-3 border-b border-card">
+            <h2 className="text-base font-semibold text-app">История налоговых ставок</h2>
+            <p className="text-app-muted text-xs mt-0.5">
+              Завершённые и запланированные периоды. Действующая ставка — в карточке выше
             </p>
           </div>
-          
-          {taxRates.length === 0 ? (
+
+          {taxRates.filter((rate) => rate.id !== currentTaxRate?.id).length === 0 ? (
             <div className="text-center py-12">
-              <TrendingUp className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <p className="text-gray-500">Нет налоговых ставок</p>
+              <TrendingUp className="w-12 h-12 text-app-muted mx-auto mb-4" />
+              <p className="text-app-muted">
+                {taxRates.length === 0
+                  ? 'Ставок пока не было — создайте первую кнопкой «Новая ставка»'
+                  : 'Истории пока нет — действующая ставка показана выше'}
+              </p>
               <button
-                onClick={() => setShowForm(true)}
-                className="mt-4 px-4 py-2 text-blue-600 hover:bg-blue-50 font-medium rounded-lg transition"
+                onClick={handleCreate}
+                className="mt-4 px-4 py-2 text-primary hover:bg-primary-soft font-medium rounded-lg transition"
               >
-                Создать первую ставку
+                Создать ещё ставку
               </button>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-50">
-                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Ставка
-                    </th>
-                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Период действия
-                    </th>
-                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Статус
-                    </th>
-                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Создано
-                    </th>
-                    <th className="py-3 px-6 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Действия
-                    </th>
+                  <tr className="bg-card-2 border-b border-card">
+                    <th className="py-2.5 px-4 text-left text-xs font-semibold text-app-2 uppercase tracking-wide">Ставка</th>
+                    <th className="py-2.5 px-4 text-left text-xs font-semibold text-app-2 uppercase tracking-wide">Период действия</th>
+                    <th className="py-2.5 px-4 text-left text-xs font-semibold text-app-2 uppercase tracking-wide">Статус</th>
+                    <th className="py-2.5 px-4 text-left text-xs font-semibold text-app-2 uppercase tracking-wide">Создано</th>
+                    <th className="py-2.5 px-4 text-right text-xs font-semibold text-app-2 uppercase tracking-wide">Действия</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {taxRates.map((rate) => {
+                <tbody className="divide-y divide-card">
+                  {taxRates.filter((rate) => rate.id !== currentTaxRate?.id).map((rate) => {
                     const isActive = isRateActive(rate);
                     return (
-                      <tr key={rate.id} className="hover:bg-gray-50">
-                        <td className="py-4 px-6">
+                      <tr key={rate.id} className="hover:bg-hover transition">
+                        <td className="py-2 px-4">
                           <div className="flex items-center">
-                            <div className={`p-2 rounded-lg ${isActive ? 'bg-green-100' : 'bg-gray-100'}`}>
-                              <TrendingUp className={`w-5 h-5 ${isActive ? 'text-green-600' : 'text-gray-600'}`} />
+                            <div className={`p-1.5 rounded-lg ${isActive ? 'bg-mint' : 'bg-hover'}`}>
+                              <TrendingUp className={`w-4 h-4 ${isActive ? 'text-ink' : 'text-app-2'}`} />
                             </div>
-                            <div className="ml-4">
-                              <span className="text-lg font-semibold text-gray-900">
-                                {rate.tax_rate}%
-                              </span>
-                            </div>
+                            <span className="ml-3 text-base font-semibold text-app">
+                              {rate.tax_rate}%
+                            </span>
                           </div>
                         </td>
-                        <td className="py-4 px-6">
+                        <td className="py-2 px-4">
                           <div className="flex items-center">
-                            <Calendar className="w-4 h-4 text-gray-400 mr-2" />
+                            <Calendar className="w-4 h-4 text-app-muted mr-2" />
                             <div>
-                              <div className="text-sm text-gray-900">
+                              <div className="text-sm text-app">
                                 с {formatDate(rate.start_date)}
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-xs text-app-muted">
                                 по {formatDate(rate.end_date)}
                               </div>
                             </div>
                           </div>
                         </td>
-                        <td className="py-4 px-6">
+                        <td className="py-2 px-4">
                           {isActive ? (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-mint text-ink">
                               <CheckCircle className="w-3 h-3 mr-1" />
                               Активна
                             </span>
                           ) : (
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-hover text-app-muted">
                               <XCircle className="w-3 h-3 mr-1" />
                               Не активна
                             </span>
                           )}
                         </td>
-                        <td className="py-4 px-6">
-                          <div className="text-sm text-gray-900">
+                        <td className="py-2 px-4">
+                          <div className="text-sm text-app">
                             {new Date(rate.created_at).toLocaleDateString('ru-RU')}
                           </div>
                           {rate.created_by && (
-                            <div className="text-xs text-gray-500">
+                            <div className="text-xs text-app-muted">
                               {rate.created_by}
                             </div>
                           )}
                         </td>
-                        <td className="py-4 px-6">
-                            <div className="flex space-x-2">
-                                <button
-                                onClick={() => handleEdit(rate)}
-                                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition"
-                                title="Редактировать"
-                                >
-                                <Edit className="w-4 h-4" />
-                                </button>
-                                
-                                {!rate.end_date && (
-                                <button
-                                    onClick={() => openCloseModal(rate.id, rate.start_date, rate.tax_rate)}
-                                    className="p-2 text-orange-600 hover:bg-orange-50 rounded-lg transition"
-                                    title="Закрыть период"
-                                >
-                                    <Calendar className="w-4 h-4" />
-                                </button>
-                                )}
-                                
-                                <button
-                                onClick={() => handleDelete(rate.id)}
-                                className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition"
-                                title="Удалить"
-                                >
-                                <Trash2 className="w-4 h-4" />
-                                </button>
-                            </div>
+                        <td className="py-2 px-4">
+                          {/* Кнопки в высоту строки: белые, объёмные, с цветной тенью */}
+                          <div className="flex items-stretch justify-end gap-2">
+                            <button
+                              onClick={() => handleEdit(rate)}
+                              className="px-3 py-2 min-h-[44px] bg-card text-blue-600 rounded-lg border border-blue-200/60 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/40 hover:-translate-y-px active:translate-y-0 active:shadow-sm transition flex items-center gap-1.5"
+                              title="Редактировать"
+                            >
+                              <Edit className="w-4 h-4" />
+                              <span className="text-xs font-medium hidden lg:inline">Редактировать</span>
+                            </button>
+
+                            {!rate.end_date && (
+                              <button
+                                onClick={() => openCloseModal(rate.id, rate.start_date, rate.tax_rate)}
+                                className="px-3 py-2 min-h-[44px] bg-card text-orange-600 rounded-lg border border-orange-200/60 shadow-md shadow-orange-500/25 hover:shadow-lg hover:shadow-orange-500/40 hover:-translate-y-px active:translate-y-0 active:shadow-sm transition flex items-center gap-1.5"
+                                title="Закрыть период"
+                              >
+                                <Calendar className="w-4 h-4" />
+                                <span className="text-xs font-medium hidden lg:inline">Закрыть период</span>
+                              </button>
+                            )}
+
+                            <button
+                              onClick={() => handleDelete(rate)}
+                              className="px-3 py-2 min-h-[44px] bg-card text-red-600 rounded-lg border border-red-200/60 shadow-md shadow-red-500/25 hover:shadow-lg hover:shadow-red-500/40 hover:-translate-y-px active:translate-y-0 active:shadow-sm transition flex items-center gap-1.5"
+                              title="Удалить"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              <span className="text-xs font-medium hidden lg:inline">Удалить</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -541,10 +405,10 @@ export default function Taxes() {
         </div>
 
         {/* Информационная панель */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Как это работает</h3>
-            <ul className="space-y-2 text-sm text-gray-600">
+        <div data-tour="taxes-info" className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-card rounded-xl shadow-sm border border-card p-6">
+            <h3 className="text-lg font-semibold text-app mb-2">Как это работает</h3>
+            <ul className="space-y-2 text-sm text-app-2">
               <li className="flex items-start">
                 <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 mr-2"></div>
                 <span>Ставка используется для расчета налогов в отчетности</span>
@@ -560,15 +424,15 @@ export default function Taxes() {
             </ul>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Статистика</h3>
+          <div className="bg-card rounded-xl shadow-sm border border-card p-6">
+            <h3 className="text-lg font-semibold text-app mb-2">Статистика</h3>
             <div className="space-y-3">
               <div>
-                <p className="text-sm text-gray-500">Всего ставок</p>
-                <p className="text-2xl font-bold text-gray-900">{taxRates.length}</p>
+                <p className="text-sm text-app-muted">Всего ставок</p>
+                <p className="text-2xl font-bold text-app">{taxRates.length}</p>
               </div>
               <div>
-                <p className="text-sm text-gray-500">Активных ставок</p>
+                <p className="text-sm text-app-muted">Активных ставок</p>
                 <p className="text-2xl font-bold text-green-600">
                   {taxRates.filter(isRateActive).length}
                 </p>
@@ -576,31 +440,31 @@ export default function Taxes() {
             </div>
           </div>
           
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">Советы</h3>
-            <p className="text-sm text-gray-600">
+          <div className="bg-card rounded-xl shadow-sm border border-card p-6">
+            <h3 className="text-lg font-semibold text-app mb-2">Советы</h3>
+            <p className="text-sm text-app-2">
               При изменении режима налогооблажения для вашего бизнеса, создайте новую ставку с новой датой начала.
               Старую ставку необходимо закрыть датой, предшествующей дате начала действия новой ставки, что бы не возникало пересечения периодов действия ставок. Для этого воспользуйтесь кнопкой "Закрыть период" в колонке "Действия".
             </p>
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Подвал */}
-      <footer className="bg-white border-t border-gray-200 py-6 mt-8">
+      <footer className="bg-card border-t border-card py-6 mt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col md:flex-row justify-between items-center">
-            <p className="text-gray-500 text-sm">
-              © {new Date().getFullYear()} WB Analytics Dashboard. Налоговые ставки обновляются вручную.
+            <p className="text-app-muted text-sm">
+              © {new Date().getFullYear()} FAAPP. Налоговые ставки обновляются вручную.
             </p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <a href="#" className="text-gray-500 hover:text-gray-700 text-sm">
+              <a href="#" className="text-app-muted hover:text-app-2 text-sm">
                 Документация
               </a>
-              <a href="#" className="text-gray-500 hover:text-gray-700 text-sm">
+              <a href="#" className="text-app-muted hover:text-app-2 text-sm">
                 Поддержка
               </a>
-              <a href="#" className="text-gray-500 hover:text-gray-700 text-sm">
+              <a href="#" className="text-app-muted hover:text-app-2 text-sm">
                 Конфиденциальность
               </a>
             </div>
@@ -616,6 +480,28 @@ export default function Taxes() {
           taxRate={selectedRateInfo.taxRate}
         />
       )}
+
+      {/* Модалка создания/редактирования ставки — единообразно с закрытием периода */}
+      <TaxRateModal
+        isOpen={isRateModalOpen}
+        onClose={() => {
+          setIsRateModalOpen(false);
+          setEditingRate(null);
+        }}
+        rate={editingRate}
+        onSave={handleSaveRate}
+      />
+
+      {/* Модалка подтверждения удаления ставки */}
+      <TaxRateDeleteModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => {
+          setIsDeleteModalOpen(false);
+          setDeletingRate(null);
+        }}
+        rate={deletingRate}
+        onDelete={confirmDeleteRate}
+      />
     </div>
   );
 

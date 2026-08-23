@@ -114,22 +114,22 @@ export default function CostImportModal({ isOpen, onClose, onImported }: CostImp
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto">
         {/* Заголовок */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white z-10">
+        <div className="flex items-center justify-between p-6 border-b border-card sticky top-0 bg-card z-10">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-emerald-100 rounded-lg">
               <FileSpreadsheet className="w-5 h-5 text-emerald-600" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">Себестоимости из файла</h3>
-              <p className="text-sm text-gray-500">
+              <h3 className="text-lg font-bold text-app">Себестоимости из файла</h3>
+              <p className="text-sm text-app-muted">
                 Массовая загрузка себестоимостей (xlsx / csv: sku, cost, start_date)
               </p>
             </div>
           </div>
-          <button onClick={handleClose} className="p-2 hover:bg-gray-100 rounded-lg transition">
-            <X className="w-5 h-5 text-gray-500" />
+          <button onClick={handleClose} className="p-2 hover:bg-hover rounded-lg transition">
+            <X className="w-5 h-5 text-app-muted" />
           </button>
         </div>
 
@@ -156,7 +156,7 @@ export default function CostImportModal({ isOpen, onClose, onImported }: CostImp
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={handleDownloadTemplate}
-                  className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition flex items-center justify-center gap-2"
+                  className="flex-1 py-3 px-4 border border-input text-app-2 font-medium rounded-xl hover:bg-hover transition flex items-center justify-center gap-2"
                 >
                   <Download className="w-4 h-4" />
                   Скачать шаблон с текущими данными
@@ -164,21 +164,21 @@ export default function CostImportModal({ isOpen, onClose, onImported }: CostImp
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   Файл с себестоимостями (.xlsx / .csv)
                 </label>
                 <input
                   type="file"
                   accept=".xlsx,.csv"
                   onChange={handleFileChange}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
+                  className="w-full px-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                 />
               </div>
 
               <button
                 onClick={handlePreview}
                 disabled={!selectedFile || isLoading}
-                className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                className="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary-dark text-white font-medium rounded-xl hover:from-primary-dark hover:to-primary transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
               >
                 {isLoading ? (
                   <>
@@ -206,7 +206,7 @@ export default function CostImportModal({ isOpen, onClose, onImported }: CostImp
                   <span className="px-3 py-1 bg-yellow-100 text-yellow-800 rounded-full font-medium">
                     Обновлений: {report.summary.updated}
                   </span>
-                  <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full font-medium">
+                  <span className="px-3 py-1 bg-hover text-app rounded-full font-medium">
                     Закроется периодов: {report.summary.closed_periods}
                   </span>
                   <span className="px-3 py-1 bg-red-100 text-red-800 rounded-full font-medium">
@@ -215,23 +215,23 @@ export default function CostImportModal({ isOpen, onClose, onImported }: CostImp
                 </div>
                 <button
                   onClick={() => { setReport(null); }}
-                  className="flex items-center gap-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
+                  className="flex items-center gap-2 px-4 py-2 text-sm text-app-2 hover:text-app hover:bg-hover rounded-lg transition"
                 >
                   <RefreshCw className="w-4 h-4" />
                   Выбрать другой файл
                 </button>
               </div>
 
-              <div className="border border-gray-200 rounded-xl overflow-hidden max-h-[45vh] overflow-y-auto">
+              <div className="border border-card rounded-xl overflow-hidden max-h-[45vh] overflow-y-auto">
                 <table className="w-full text-sm">
-                  <thead className="bg-gray-50 border-b border-gray-200 sticky top-0">
+                  <thead className="bg-card-2 border-b border-card sticky top-0">
                     <tr>
-                      <th className="py-3 px-3 text-left font-semibold text-gray-900">Строка</th>
-                      <th className="py-3 px-3 text-left font-semibold text-gray-900">SKU</th>
-                      <th className="py-3 px-3 text-left font-semibold text-gray-900">Товар</th>
-                      <th className="py-3 px-3 text-right font-semibold text-gray-900">Себест., ₽</th>
-                      <th className="py-3 px-3 text-left font-semibold text-gray-900">Дата начала</th>
-                      <th className="py-3 px-3 text-left font-semibold text-gray-900">Действие</th>
+                      <th className="py-3 px-3 text-left font-semibold text-app">Строка</th>
+                      <th className="py-3 px-3 text-left font-semibold text-app">SKU</th>
+                      <th className="py-3 px-3 text-left font-semibold text-app">Товар</th>
+                      <th className="py-3 px-3 text-right font-semibold text-app">Себест., ₽</th>
+                      <th className="py-3 px-3 text-left font-semibold text-app">Дата начала</th>
+                      <th className="py-3 px-3 text-left font-semibold text-app">Действие</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
@@ -239,22 +239,22 @@ export default function CostImportModal({ isOpen, onClose, onImported }: CostImp
                       const style = ACTION_STYLES[row.action] || ACTION_STYLES.error;
                       return (
                         <tr key={row.row_num} className={style.row}>
-                          <td className="py-2.5 px-3 text-gray-500">{row.row_num}</td>
-                          <td className="py-2.5 px-3 font-mono text-gray-900">{row.sku || '—'}</td>
-                          <td className="py-2.5 px-3 text-gray-700 max-w-[220px] truncate" title={row.product_name || ''}>
+                          <td className="py-2.5 px-3 text-app-muted">{row.row_num}</td>
+                          <td className="py-2.5 px-3 font-mono text-app">{row.sku || '—'}</td>
+                          <td className="py-2.5 px-3 text-app-2 max-w-[220px] truncate" title={row.product_name || ''}>
                             {row.product_name || '—'}
                           </td>
-                          <td className="py-2.5 px-3 text-right font-mono text-gray-900">
+                          <td className="py-2.5 px-3 text-right font-mono text-app">
                             {row.cost != null ? Number(row.cost).toFixed(2) : '—'}
                           </td>
-                          <td className="py-2.5 px-3 font-mono text-gray-900">{row.start_date || '—'}</td>
+                          <td className="py-2.5 px-3 font-mono text-app">{row.start_date || '—'}</td>
                           <td className="py-2.5 px-3">
                             <div className="flex items-center gap-2">
                               <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${style.badge}`}>
                                 {style.label}
                               </span>
                               {row.message && (
-                                <span className="text-xs text-gray-500 truncate" title={row.message}>
+                                <span className="text-xs text-app-muted truncate" title={row.message}>
                                   {row.message}
                                 </span>
                               )}
@@ -270,7 +270,7 @@ export default function CostImportModal({ isOpen, onClose, onImported }: CostImp
               <div className="flex gap-3 pt-2">
                 <button
                   onClick={handleClose}
-                  className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition"
+                  className="flex-1 py-3 px-4 border border-input text-app-2 font-medium rounded-xl hover:bg-hover transition"
                   disabled={isImporting}
                 >
                   Отмена

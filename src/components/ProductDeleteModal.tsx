@@ -62,24 +62,24 @@ export default function ProductDeleteModal({ product, isOpen, onClose, onSave }:
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Заголовок */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white">
+        <div className="flex items-center justify-between p-6 border-b border-card sticky top-0 bg-card">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-red-100 rounded-lg">
               <Trash2 className="w-5 h-5 text-red-600" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">
+              <h3 className="text-lg font-bold text-app">
                 Удалить товар
               </h3>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            className="p-2 hover:bg-hover rounded-lg transition"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-app-muted" />
           </button>
         </div>
 
@@ -96,64 +96,64 @@ export default function ProductDeleteModal({ product, isOpen, onClose, onSave }:
             {/* Основная информация */}
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-gray-400" />
+                    <Tag className="w-4 h-4 text-app-muted" />
                     <span>SKU (внутренний артикул)*</span>
                   </div>
                 </label>
                 <input
                   type="text"
                   value={formData.sku}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed outline-none"
+                  className="w-full px-4 py-2.5 border border-card rounded-lg bg-card-2 text-app-2 cursor-not-allowed outline-none"
                   placeholder="WB-001"
                   disabled
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <Package className="w-4 h-4 text-gray-400" />
+                    <Package className="w-4 h-4 text-app-muted" />
                     <span>Артикул Wildberries*</span>
                   </div>
                 </label>
                 <input
                   type="text"
                   value={formData.marketplace_sku}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed outline-none"
+                  className="w-full px-4 py-2.5 border border-card rounded-lg bg-card-2 text-app-2 cursor-not-allowed outline-none"
                   placeholder="12345678"
                   disabled
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <Barcode className="w-4 h-4 text-gray-400" />
+                    <Barcode className="w-4 h-4 text-app-muted" />
                     <span>Штрихкод</span>
                   </div>
                 </label>
                 <input
                   type="text"
                   value={formData.barcode}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed outline-none"
+                  className="w-full px-4 py-2.5 border border-card rounded-lg bg-card-2 text-app-2 cursor-not-allowed outline-none"
                   placeholder="4601234567890"
                   disabled
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <Image className="w-4 h-4 text-gray-400" />
+                    <Image className="w-4 h-4 text-app-muted" />
                     <span>URL изображения</span>
                   </div>
                 </label>
                 <input
                   type="url"
                   value={formData.foto}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed outline-none"
+                  className="w-full px-4 py-2.5 border border-card rounded-lg bg-card-2 text-app-2 cursor-not-allowed outline-none"
                   placeholder="https://images.wbstatic.net/c246x328/new/12345678-1.jpg"
                 />
                 {formData.foto && (
@@ -176,39 +176,39 @@ export default function ProductDeleteModal({ product, isOpen, onClose, onSave }:
             {/* Дополнительная информация */}
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   Название товара*
                 </label>
                 <input
                   type="text"
                   value={formData.name}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed outline-none"
+                  className="w-full px-4 py-2.5 border border-card rounded-lg bg-card-2 text-app-2 cursor-not-allowed outline-none"
                   placeholder="Смартфон X Pro 256GB"
                   disabled
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   Описание
                 </label>
                 <textarea
                   value={formData.description}
                   rows={3}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed outline-none"
+                  className="w-full px-4 py-2.5 border border-card rounded-lg bg-card-2 text-app-2 cursor-not-allowed outline-none"
                   placeholder="Флагманский смартфон с камерой 108 Мп..."
                   disabled
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   Категория
                 </label>
                 <input
                   type="text"
                   value={formData.category}
-                  className="w-full px-4 py-2.5 border border-gray-200 rounded-lg bg-gray-50 text-gray-600 cursor-not-allowed outline-none"
+                  className="w-full px-4 py-2.5 border border-card rounded-lg bg-card-2 text-app-2 cursor-not-allowed outline-none"
                   placeholder="Электроника"
                   list="categories"
                   disabled
@@ -223,19 +223,19 @@ export default function ProductDeleteModal({ product, isOpen, onClose, onSave }:
                     className="w-4 h-4 text-green-600 rounded focus:ring-green-500 cursor-not-allowed"
                     disabled
                   />
-                  <span className="text-gray-700 cursor-not-allowed">Товар активен</span>
-                  <span className="text-sm text-gray-500">(отображается в каталоге)</span>
+                  <span className="text-app-2 cursor-not-allowed">Товар активен</span>
+                  <span className="text-sm text-app-muted">(отображается в каталоге)</span>
                 </label>
               </div>
             </div>
           </div>
 
           {/* Кнопки */}
-          <div className="mt-8 pt-6 border-t border-gray-200 flex space-x-3">
+          <div className="mt-8 pt-6 border-t border-card flex space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition"
+              className="flex-1 py-3 px-4 border border-input text-app-2 font-medium rounded-xl hover:bg-hover transition"
               disabled={isLoading}
             >
               Отмена
@@ -244,7 +244,7 @@ export default function ProductDeleteModal({ product, isOpen, onClose, onSave }:
                 type="button"
                 onClick={handleDelete}
                 disabled={isLoading}
-                className="flex-1 py-3 px-4 bg-gradient-to-r from-rose-600 to-pink-600 text-white font-medium rounded-xl hover:from-rose-700 hover:to-pink-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+                className="flex-1 py-3 px-4 bg-red-600 text-white font-medium rounded-xl hover:bg-red-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
                 {isLoading ? (
                     <>

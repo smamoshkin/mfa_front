@@ -132,27 +132,27 @@ export default function ProductModal({ product, isOpen, onClose, onSave, existin
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         {/* Заголовок */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 sticky top-0 bg-white">
+        <div className="flex items-center justify-between p-6 border-b border-card sticky top-0 bg-card">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <Package className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">
+              <h3 className="text-lg font-bold text-app">
                 {product ? 'Редактировать товар' : 'Добавить новый товар'}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-app-muted">
                 {product ? 'Обновите информацию о товаре' : 'Заполните данные нового товара'}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            className="p-2 hover:bg-hover rounded-lg transition"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-app-muted" />
           </button>
         </div>
 
@@ -190,9 +190,9 @@ export default function ProductModal({ product, isOpen, onClose, onSave, existin
             {/* Основная информация */}
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <Tag className="w-4 h-4 text-gray-400" />
+                    <Tag className="w-4 h-4 text-app-muted" />
                     <span>SKU (внутренний артикул)*</span>
                   </div>
                 </label>
@@ -200,16 +200,16 @@ export default function ProductModal({ product, isOpen, onClose, onSave, existin
                   type="text"
                   value={formData.sku}
                   onChange={(e) => handleChange('sku', e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="WB-001"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <Package className="w-4 h-4 text-gray-400" />
+                    <Package className="w-4 h-4 text-app-muted" />
                     <span>Артикул Wildberries*</span>
                   </div>
                 </label>
@@ -217,16 +217,16 @@ export default function ProductModal({ product, isOpen, onClose, onSave, existin
                   type="text"
                   value={formData.marketplace_sku}
                   onChange={(e) => handleChange('marketplace_sku', e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="12345678"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <Barcode className="w-4 h-4 text-gray-400" />
+                    <Barcode className="w-4 h-4 text-app-muted" />
                     <span>Штрихкод</span>
                   </div>
                 </label>
@@ -234,15 +234,15 @@ export default function ProductModal({ product, isOpen, onClose, onSave, existin
                   type="text"
                   value={formData.barcode}
                   onChange={(e) => handleChange('barcode', e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="4601234567890"
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <Image className="w-4 h-4 text-gray-400" />
+                    <Image className="w-4 h-4 text-app-muted" />
                     <span>URL изображения</span>
                   </div>
                 </label>
@@ -250,7 +250,7 @@ export default function ProductModal({ product, isOpen, onClose, onSave, existin
                   type="url"
                   value={formData.foto}
                   onChange={(e) => handleChange('foto', e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="https://images.wbstatic.net/c246x328/new/12345678-1.jpg"
                 />
                 {formData.foto && (
@@ -273,41 +273,41 @@ export default function ProductModal({ product, isOpen, onClose, onSave, existin
             {/* Дополнительная информация */}
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   Название товара*
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleChange('name', e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="Смартфон X Pro 256GB"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   Описание
                 </label>
                 <textarea
                   value={formData.description}
                   onChange={(e) => handleChange('description', e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+                  className="w-full px-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
                   placeholder="Флагманский смартфон с камерой 108 Мп..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   Категория
                 </label>
                 <input
                   type="text"
                   value={formData.category}
                   onChange={(e) => handleChange('category', e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
                   placeholder="Электроника"
                   list="categories"
                 />
@@ -332,19 +332,19 @@ export default function ProductModal({ product, isOpen, onClose, onSave, existin
                     onChange={(e) => handleChange('is_active', e.target.checked)}
                     className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
                   />
-                  <span className="text-gray-700">Товар активен</span>
-                  <span className="text-sm text-gray-500">(отображается в каталоге)</span>
+                  <span className="text-app-2">Товар активен</span>
+                  <span className="text-sm text-app-muted">(отображается в каталоге)</span>
                 </label>
               </div>
             </div>
           </div>
 
           {/* Кнопки */}
-          <div className="mt-8 pt-6 border-t border-gray-200 flex space-x-3">
+          <div className="mt-8 pt-6 border-t border-card flex space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition"
+              className="flex-1 py-3 px-4 border border-input text-app-2 font-medium rounded-xl hover:bg-hover transition"
               disabled={isLoading}
             >
               Отмена
@@ -352,7 +352,7 @@ export default function ProductModal({ product, isOpen, onClose, onSave, existin
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
+              className="flex-1 py-3 px-4 bg-gradient-to-r from-primary to-primary-dark text-white font-medium rounded-xl hover:from-primary-dark hover:to-primary transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center"
             >
               {isLoading ? (
                 <>

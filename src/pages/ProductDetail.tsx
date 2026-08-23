@@ -117,13 +117,13 @@ export default function ProductDetail() {
 
   const formatEndDate = (endDate: string | null | undefined): React.ReactNode => {
     if (!endDate || endDate === 'null' || endDate === '') {
-      return <span className="text-gray-500">∞ <span className="text-xs">(бессрочно)</span></span>;
+      return <span className="text-app-muted">∞ <span className="text-xs">(бессрочно)</span></span>;
     }
     
     const date = new Date(endDate);
     // Проверка на 1970 год (Unix epoch)
     if (date.getFullYear() === 1970 || date.getTime() <= 0) {
-      return <span className="text-gray-500">∞ <span className="text-xs">(бессрочно)</span></span>;
+      return <span className="text-app-muted">∞ <span className="text-xs">(бессрочно)</span></span>;
     }
     
     return format(date, 'd MMM yyyy', { locale: ru });
@@ -144,10 +144,10 @@ export default function ProductDetail() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="py-32 flex items-center justify-center">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-          <p className="mt-4 text-gray-600">Загрузка товара...</p>
+          <p className="mt-4 text-app-2">Загрузка товара...</p>
         </div>
       </div>
     );
@@ -155,11 +155,11 @@ export default function ProductDetail() {
 
   if (error || !product) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
+      <div className="py-32 flex items-center justify-center">
         <div className="text-center max-w-md p-8">
           <AlertCircle className="w-16 h-16 text-red-500 mx-auto mb-4" />
-          <h1 className="text-2xl font-bold text-gray-900 mb-2">Ошибка</h1>
-          <p className="text-gray-600 mb-6">{error || 'Товар не найден'}</p>
+          <h1 className="text-2xl font-bold text-app mb-2">Ошибка</h1>
+          <p className="text-app-2 mb-6">{error || 'Товар не найден'}</p>
           <button
             onClick={() => navigate('/products')}
             className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition flex items-center justify-center mx-auto"
@@ -173,30 +173,8 @@ export default function ProductDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Шапка */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <button
-                onClick={() => navigate('/products')}
-                className="p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition mr-3"
-              >
-                <ArrowLeft className="w-5 h-5" />
-              </button>
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                  <Package className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">Товар</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Кнопка назад и действия 
         <div className="flex justify-between items-center mb-8">
           <div>
@@ -211,7 +189,7 @@ export default function ProductDetail() {
           <div className="flex space-x-3">
             <button
               onClick={() => navigate(`/products/${productId}/edit`)}
-              className="px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition flex items-center"
+              className="px-4 py-2 border border-input text-app-2 rounded-lg hover:bg-hover transition flex items-center"
             >
               <Edit2 className="w-4 h-4 mr-2" />
               Редактировать
@@ -223,7 +201,7 @@ export default function ProductDetail() {
           {/* Левая колонка - информация о товаре */}
           <div className="lg:col-span-2 space-y-8">
             {/* Карточка товара */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-card rounded-xl shadow-sm border border-card p-6">
               <div className="flex flex-col md:flex-row gap-6">
                 {/* Изображение */}
                 <div className="flex-shrink-0">
@@ -238,8 +216,8 @@ export default function ProductDetail() {
                         }}
                       />
                     ) : (
-                      <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                        <Package className="w-12 h-12 text-gray-400" />
+                      <div className="w-full h-full bg-hover flex items-center justify-center">
+                        <Package className="w-12 h-12 text-app-muted" />
                       </div>
                     )}
                   </div>
@@ -249,12 +227,12 @@ export default function ProductDetail() {
                 <div className="flex-grow">
                   <div className="flex justify-between items-start mb-4">
                     <div>
-                      <h1 className="text-2xl font-bold text-gray-900 mb-2">{product.name}</h1>
+                      <h1 className="text-2xl font-bold text-app mb-2">{product.name}</h1>
                       <div className="flex items-center space-x-4 mb-4">
                         <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                           product.is_active 
                             ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
+                            : 'bg-hover text-app'
                         }`}>
                           {product.is_active ? 'Активен' : 'Неактивен'}
                         </span>
@@ -268,28 +246,28 @@ export default function ProductDetail() {
                   <div className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <label className="text-sm text-gray-500">SKU</label>
-                        <p className="font-mono text-gray-900">{product.sku}</p>
+                        <label className="text-sm text-app-muted">SKU</label>
+                        <p className="font-mono text-app">{product.sku}</p>
                       </div>
                       <div>
-                        <label className="text-sm text-gray-500">Артикул WB</label>
-                        <p className="font-mono text-gray-900">{product.marketplace_sku}</p>
+                        <label className="text-sm text-app-muted">Артикул WB</label>
+                        <p className="font-mono text-app">{product.marketplace_sku}</p>
                       </div>
                       <div>
-                        <label className="text-sm text-gray-500">Штрихкод</label>
-                        <p className="font-mono text-gray-900">{product.barcode}</p>
+                        <label className="text-sm text-app-muted">Штрихкод</label>
+                        <p className="font-mono text-app">{product.barcode}</p>
                       </div>
                       <div>
-                        <label className="text-sm text-gray-500">Дата обновления</label>
-                        <p className="text-gray-900">
+                        <label className="text-sm text-app-muted">Дата обновления</label>
+                        <p className="text-app">
                           {format(new Date(product.updated_at), 'd MMMM yyyy', { locale: ru })}
                         </p>
                       </div>
                     </div>
 
                     <div>
-                      <label className="text-sm text-gray-500">Описание</label>
-                      <p className="text-gray-900 mt-1">{product.description}</p>
+                      <label className="text-sm text-app-muted">Описание</label>
+                      <p className="text-app mt-1">{product.description}</p>
                     </div>
                   </div>
                 </div>
@@ -297,44 +275,44 @@ export default function ProductDetail() {
             </div>
 
             {/* Метрики 
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Метрики продаж</h2>
+            <div className="bg-card rounded-xl shadow-sm border border-card p-6">
+              <h2 className="text-xl font-bold text-app mb-6">Метрики продаж</h2>
               
               <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900 mb-2">
+                  <div className="text-3xl font-bold text-app mb-2">
                     {product.last_month_sales?.toLocaleString() || '—'}
                   </div>
-                  <div className="text-sm text-gray-500">Продажи (30 дн.)</div>
+                  <div className="text-sm text-app-muted">Продажи (30 дн.)</div>
                 </div>
                 
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900 mb-2">
+                  <div className="text-3xl font-bold text-app mb-2">
                     {product.last_month_revenue ? `${Math.round(product.last_month_revenue / 1000)}K ₽` : '—'}
                   </div>
-                  <div className="text-sm text-gray-500">Выручка (30 дн.)</div>
+                  <div className="text-sm text-app-muted">Выручка (30 дн.)</div>
                 </div>
                 
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900 mb-2">
+                  <div className="text-3xl font-bold text-app mb-2">
                     {product.profitability ? `${product.profitability.toFixed(1)}%` : '—'}
                   </div>
-                  <div className="text-sm text-gray-500">Рентабельность</div>
+                  <div className="text-sm text-app-muted">Рентабельность</div>
                 </div>
                 
                 <div className="text-center">
-                  <div className="text-3xl font-bold text-gray-900 mb-2">
+                  <div className="text-3xl font-bold text-app mb-2">
                     {product.stock?.toLocaleString() || '—'}
                   </div>
-                  <div className="text-sm text-gray-500">Остаток на складе</div>
+                  <div className="text-sm text-app-muted">Остаток на складе</div>
                 </div>
               </div>
             </div>*/}
 
             {/* История себестоимости */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-card rounded-xl shadow-sm border border-card p-6">
               <div className="flex justify-between items-center mb-6">
-                <h2 className="text-xl font-bold text-gray-900">История себестоимости</h2>
+                <h2 className="text-xl font-bold text-app">История себестоимости</h2>
                 <button
                   onClick={handleAddCost}
                   className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center"
@@ -347,8 +325,8 @@ export default function ProductDetail() {
               {costs.length === 0 ? (
                 <div className="text-center py-12">
                   <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Нет данных о себестоимости</h3>
-                  <p className="text-gray-600 mb-6">Добавьте первую себестоимость для этого товара</p>
+                  <h3 className="text-lg font-medium text-app mb-2">Нет данных о себестоимости</h3>
+                  <p className="text-app-2 mb-6">Добавьте первую себестоимость для этого товара</p>
                   {/*<button
                     onClick={handleAddCost}
                     className="px-6 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition flex items-center mx-auto"
@@ -361,28 +339,28 @@ export default function ProductDetail() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-gray-50 border-b border-gray-200">
-                        <th className="py-3 px-4 text-left text-sm font-semibold text-gray-900">Период</th>
-                        <th className="py-3 px-4 text-left text-sm font-semibold text-gray-900">Себестоимость</th>
-                        <th className="py-3 px-4 text-left text-sm font-semibold text-gray-900">Добавил</th>
-                        <th className="py-3 px-4 text-left text-sm font-semibold text-gray-900">Дата добавления</th>
-                        <th className="py-3 px-4 text-left text-sm font-semibold text-gray-900">Действия</th>
+                      <tr className="bg-card-2 border-b border-card">
+                        <th className="py-3 px-4 text-left text-sm font-semibold text-app">Период</th>
+                        <th className="py-3 px-4 text-left text-sm font-semibold text-app">Себестоимость</th>
+                        <th className="py-3 px-4 text-left text-sm font-semibold text-app">Добавил</th>
+                        <th className="py-3 px-4 text-left text-sm font-semibold text-app">Дата добавления</th>
+                        <th className="py-3 px-4 text-left text-sm font-semibold text-app">Действия</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
                       {costs.map((cost) => (
                         <tr 
                           key={cost.id} 
-                          className={`hover:bg-gray-50 transition ${
+                          className={`hover:bg-hover transition ${
                             currentCost?.id === cost.id ? 'bg-blue-50' : ''
                           }`}
                         >
                           <td className="py-3 px-4">
                             <div>
-                              <div className="font-medium text-gray-900">
+                              <div className="font-medium text-app">
                                 {format(new Date(cost.start_date), 'd MMM yyyy', { locale: ru })}
                               </div>
-                              <div className="text-sm text-gray-500">
+                              <div className="text-sm text-app-muted">
                                 по {formatEndDate(cost.end_date)}
                               </div>
                               {currentCost?.id === cost.id && (
@@ -393,15 +371,15 @@ export default function ProductDetail() {
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <div className="text-xl font-bold text-gray-900">
+                            <div className="text-xl font-bold text-app">
                               {parseFloat(cost.cost).toLocaleString()} ₽
                             </div>
                           </td>
                           <td className="py-3 px-4">
-                            <div className="text-gray-700">{cost.created_by}</div>
+                            <div className="text-app-2">{cost.created_by}</div>
                           </td>
                           <td className="py-3 px-4">
-                            <div className="text-gray-700">
+                            <div className="text-app-2">
                               {format(new Date(cost.created_at), 'd MMM yyyy', { locale: ru })}
                             </div>
                           </td>
@@ -436,35 +414,35 @@ export default function ProductDetail() {
           {/* Правая колонка - текущая себестоимость и прибыль */}
           <div className="space-y-8">
             {/* Текущая себестоимость */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-6">Текущая себестоимость</h2>
+            <div className="bg-card rounded-xl shadow-sm border border-card p-6">
+              <h2 className="text-xl font-bold text-app mb-6">Текущая себестоимость</h2>
               
               {currentCost ? (
                 <div className="space-y-6">
                   <div className="text-center">
-                    <div className="text-5xl font-bold text-gray-900 mb-2">
+                    <div className="text-5xl font-bold text-app mb-2">
                       {parseFloat(currentCost.cost).toLocaleString()} ₽
                     </div>
-                    <div className="text-sm text-gray-500">на единицу товара</div>
+                    <div className="text-sm text-app-muted">на единицу товара</div>
                   </div>
 
                   <div className="space-y-4">
                     <div>
-                      <label className="text-sm text-gray-500">Период действия</label>
-                      <p className="text-gray-900 font-medium">
+                      <label className="text-sm text-app-muted">Период действия</label>
+                      <p className="text-app font-medium">
                         {format(new Date(currentCost.start_date), 'd MMMM yyyy', { locale: ru })} —{' '}
                         {formatEndDate(currentCost.end_date)}
                       </p>
                     </div>
 
                     <div>
-                      <label className="text-sm text-gray-500">Добавил</label>
-                      <p className="text-gray-900">{currentCost.created_by}</p>
+                      <label className="text-sm text-app-muted">Добавил</label>
+                      <p className="text-app">{currentCost.created_by}</p>
                     </div>
 
                     <div>
-                      <label className="text-sm text-gray-500">Дата добавления</label>
-                      <p className="text-gray-900">
+                      <label className="text-sm text-app-muted">Дата добавления</label>
+                      <p className="text-app">
                         {format(new Date(currentCost.created_at), 'd MMMM yyyy', { locale: ru })}
                       </p>
                     </div>
@@ -475,7 +453,7 @@ export default function ProductDetail() {
                       const cost = costs.find(c => c.id === currentCost.id);
                       if (cost) handleEditCost(cost);
                     }}
-                    className="w-full py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 transition"
+                    className="w-full py-3 bg-gradient-to-r from-primary to-primary-dark text-white font-medium rounded-xl hover:from-primary-dark hover:to-primary transition"
                   >
                     <Edit2 className="w-4 h-4 inline mr-2" />
                     Изменить себестоимость
@@ -484,8 +462,8 @@ export default function ProductDetail() {
               ) : (
                 <div className="text-center py-8">
                   <DollarSign className="w-12 h-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">Нет текущей себестоимости</h3>
-                  <p className="text-gray-600 mb-6">Добавьте себестоимость без даты окончания, что бы она использовалась в качестве текущей</p>
+                  <h3 className="text-lg font-medium text-app mb-2">Нет текущей себестоимости</h3>
+                  <p className="text-app-2 mb-6">Добавьте себестоимость без даты окончания, что бы она использовалась в качестве текущей</p>
                   {/*<button
                     onClick={handleAddCost}
                     className="w-full py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition"
@@ -499,36 +477,36 @@ export default function ProductDetail() {
 
             {/* Расчет прибыли */}
             {profitData && product.currentPrice && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Расчет прибыли</h2>
+              <div className="bg-card rounded-xl shadow-sm border border-card p-6">
+                <h2 className="text-xl font-bold text-app mb-6">Расчет прибыли</h2>
                 
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 gap-4">
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-900 mb-1">
+                      <div className="text-2xl font-bold text-app mb-1">
                         {product.currentPrice.toLocaleString()} ₽
                       </div>
-                      <div className="text-xs text-gray-500">Цена продажи</div>
+                      <div className="text-xs text-app-muted">Цена продажи</div>
                     </div>
                     
                     <div className="text-center">
-                      <div className="text-2xl font-bold text-gray-900 mb-1">
+                      <div className="text-2xl font-bold text-app mb-1">
                         {parseFloat(currentCost!.cost).toLocaleString()} ₽
                       </div>
-                      <div className="text-xs text-gray-500">Себестоимость</div>
+                      <div className="text-xs text-app-muted">Себестоимость</div>
                     </div>
                   </div>
 
-                  <div className="pt-4 border-t border-gray-200">
+                  <div className="pt-4 border-t border-card">
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-gray-700">Прибыль на единицу:</span>
+                      <span className="text-app-2">Прибыль на единицу:</span>
                       <span className="text-xl font-bold text-green-600">
                         {profitData.profit.toLocaleString()} ₽
                       </span>
                     </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-gray-700">Рентабельность:</span>
+                      <span className="text-app-2">Рентабельность:</span>
                       <span className={`text-xl font-bold ${
                         profitData.profitability > 30 ? 'text-green-600' :
                         profitData.profitability > 20 ? 'text-yellow-600' :
@@ -540,12 +518,12 @@ export default function ProductDetail() {
                   </div>
 
                   {product.last_month_sales && (
-                    <div className="pt-4 border-t border-gray-200">
+                    <div className="pt-4 border-t border-card">
                       <div className="text-center">
-                        <div className="text-lg font-bold text-gray-900 mb-1">
+                        <div className="text-lg font-bold text-app mb-1">
                           {(profitData.profit * product.last_month_sales).toLocaleString()} ₽
                         </div>
-                        <div className="text-sm text-gray-500">
+                        <div className="text-sm text-app-muted">
                           Прибыль за 30 дней ({product.last_month_sales} продаж)
                         </div>
                       </div>
@@ -556,7 +534,7 @@ export default function ProductDetail() {
             )}
           </div>
         </div>
-      </main>
+      </div>
 
       {/* Модальное окно себестоимости */}
       {isCostModalOpen && (

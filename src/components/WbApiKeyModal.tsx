@@ -40,28 +40,28 @@ export default function WbApiKeyModal({ isOpen, onClose, onSuccess }: WbApiKeyMo
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md">
+        <div className="flex items-center justify-between p-6 border-b border-card">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <Key className="w-5 h-5 text-blue-600" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">API ключ Wildberries</h3>
-              <p className="text-sm text-gray-500">Для синхронизации данных</p>
+              <h3 className="text-lg font-bold text-app">API ключ Wildberries</h3>
+              <p className="text-sm text-app-muted">Для синхронизации данных</p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            className="p-2 hover:bg-hover rounded-lg transition"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-app-muted" />
           </button>
         </div>
 
         <form onSubmit={handleSubmit} className="p-6">
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-app-2 mb-2">
               Ваш API ключ Wildberries
             </label>
             <input
@@ -69,9 +69,9 @@ export default function WbApiKeyModal({ isOpen, onClose, onSuccess }: WbApiKeyMo
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="Введите ключ из личного кабинета WB"
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+              className="w-full px-4 py-3 border border-input rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
             />
-            <p className="mt-2 text-sm text-gray-500">
+            <p className="mt-2 text-sm text-app-muted">
               Найти можно в личном кабинете WB: Настройки → Доступ к API
             </p>
           </div>
@@ -94,14 +94,14 @@ export default function WbApiKeyModal({ isOpen, onClose, onSuccess }: WbApiKeyMo
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition"
+              className="flex-1 py-3 px-4 border border-input text-app-2 font-medium rounded-xl hover:bg-hover transition"
             >
               Отмена
             </button>
             <button
               type="submit"
               disabled={isLoading}
-              className="flex-1 py-3 px-4 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-1 py-3 px-4 bg-gradient-to-r from-primary to-primary-dark text-white font-medium rounded-xl hover:from-primary-dark hover:to-primary transition disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isLoading ? 'Сохранение...' : 'Сохранить ключ'}
             </button>

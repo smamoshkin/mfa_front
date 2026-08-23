@@ -84,21 +84,21 @@ export default function ClosePeriodModal({
       <div className="fixed inset-0 bg-black/30 bg-opacity-50 transition-opacity" onClick={onClose} />
       
       <div className="flex items-center justify-center min-h-screen p-4">
-        <div className="relative bg-white rounded-2xl shadow-xl w-full max-w-md">
+        <div className="relative bg-card rounded-2xl shadow-xl w-full max-w-md">
           {/* Заголовок */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-card">
             <div className="flex items-center">
               <div className="p-2 bg-orange-100 rounded-lg mr-3">
                 <Calendar className="w-6 h-6 text-orange-600" />
               </div>
               <div>
-                <h2 className="text-xl font-bold text-gray-900">Закрыть период ставки</h2>
-                <p className="text-sm text-gray-600 mt-1">Налоговая ставка: {taxRate}%</p>
+                <h2 className="text-xl font-bold text-app">Закрыть период ставки</h2>
+                <p className="text-sm text-app-2 mt-1">Налоговая ставка: {taxRate}%</p>
               </div>
             </div>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition"
+              className="p-2 text-app-muted hover:text-app-2 hover:bg-hover rounded-lg transition"
             >
               <X className="w-5 h-5" />
             </button>
@@ -108,11 +108,11 @@ export default function ClosePeriodModal({
           <form onSubmit={handleSubmit} className="p-6">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   Дата начала периода
                 </label>
-                <div className="px-4 py-3 bg-gray-50 rounded-lg border border-gray-200">
-                  <span className="text-gray-900 font-medium">
+                <div className="px-4 py-3 bg-card-2 rounded-lg border border-card">
+                  <span className="text-app font-medium">
                     {new Date(currentStartDate).toLocaleDateString('ru-RU', {
                       day: 'numeric',
                       month: 'long',
@@ -123,7 +123,7 @@ export default function ClosePeriodModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   Дата окончания периода *
                 </label>
                 <input
@@ -137,14 +137,14 @@ export default function ClosePeriodModal({
                   max={getMaxDate()}
                   required
                   className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition ${
-                    error ? 'border-red-300' : 'border-gray-300'
+                    error ? 'border-red-300' : 'border-input'
                   }`}
                 />
                 <div className="flex justify-between mt-2">
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-app-muted">
                     Минимальная: {new Date(getMinDate()).toLocaleDateString('ru-RU')}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-app-muted">
                     Максимальная: {new Date(getMaxDate()).toLocaleDateString('ru-RU')}
                   </span>
                 </div>
@@ -175,12 +175,12 @@ export default function ClosePeriodModal({
             </div>
 
             {/* Кнопки */}
-            <div className="flex justify-end space-x-3 pt-6 mt-6 border-t border-gray-200">
+            <div className="flex justify-end space-x-3 pt-6 mt-6 border-t border-card">
               <button
                 type="button"
                 onClick={onClose}
                 disabled={loading}
-                className="px-4 py-2.5 text-gray-700 hover:bg-gray-100 font-medium rounded-lg transition disabled:opacity-50"
+                className="px-4 py-2.5 text-app-2 hover:bg-hover font-medium rounded-lg transition disabled:opacity-50"
               >
                 Отмена
               </button>

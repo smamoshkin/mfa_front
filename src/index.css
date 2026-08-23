@@ -1,18 +1,98 @@
 @import "tailwindcss";
 
+/* Тёмная тема включается классом .dark на <html> (управляется переключателем) */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Палитра FAAPP «Sales Dashboard»: кобальт + смысловые пастельные акценты */
+  --color-primary: #1F2AE1;        /* кобальт — кнопки, активная навигация, ключевые KPI */
+  --color-primary-dark: #1723C4;   /* hover-вариант кобальта */
+  --color-primary-soft: #EEF0FD;   /* светлый тинт кобальта — фоны выделения */
+  --color-mint: #B2F2D6;           /* мята — позитивные показатели, категория A */
+  --color-sand: #FFE6BA;           /* песок — предупреждения, категория B */
+  --color-sand-ink: #8A6A00;       /* читаемый текст на песке */
+  --color-ink: #193337;            /* тёмный тил — текст на мяте, заголовки */
+  --color-mist: #A6A5BB;           /* приглушённый серо-лавандовый — вторичный текст */
+}
+
+/* ---------------- Светлая / тёмная тема ---------------- */
+/* Тёмная — вариант «CRM Explorations»: почти-чёрный + лаванда + индиго */
+
+:root {
+  --background: #F3F4F8;
+  --foreground: #111827;
+
+  --surface: #FFFFFF;          /* карточки, хедер, модалки */
+  --surface-2: #F9FAFB;        /* приподнятые области (thead) */
+  --surface-hover: #F3F4F6;    /* hover-состояния */
+  --card-border: #E5E7EB;
+  --input-border: #D1D5DB;
+  --text-secondary: #4B5563;
+  --text-muted: #6B7280;
+}
+
+.dark {
+  --background: #14141B;
+  --foreground: #D8D5E2;
+
+  --surface: #1A1A23;
+  --surface-2: #20202B;
+  --surface-hover: #262633;
+  --card-border: #2B2B38;
+  --input-border: #37374A;
+  --text-secondary: #A9A4BA;
+  --text-muted: #84809A;
+}
+
+@layer utilities {
+  .bg-app      { background-color: var(--background); }
+  .bg-card     { background-color: var(--surface); }
+  .bg-card-2   { background-color: var(--surface-2); }
+  .bg-hover    { background-color: var(--surface-hover); }
+  .border-card { border-color: var(--card-border); }
+  .border-input{ border-color: var(--input-border); }
+  .text-app    { color: var(--foreground); }
+  .text-app-2  { color: var(--text-secondary); }
+  .text-app-muted { color: var(--text-muted); }
+}
+
+/* Тёмная тема: приглушаем светлый тинт кобальта и поповеры тура (driver.js) */
+.dark .bg-primary-soft {
+  background-color: rgba(87, 71, 173, 0.16);
+}
+
+/* Чистый кобальт слишком резок/тёмен на тёмном фоне — осветляем акценты */
+.dark .text-primary { color: #7B8AF5; }
+.dark .border-primary { border-color: #7B8AF5; }
+.dark .hover\:text-primary:hover { color: #94A0F8; }
+
+.dark .driver-popover {
+  background-color: #20202B;
+  color: #D8D5E2;
+  border-color: #2B2B38;
+}
+.dark .driver-popover-title,
+.dark .driver-popover-description {
+  color: #D8D5E2;
+}
+.dark .driver-popover-close-btn {
+  color: #A9A4BA;
+}
+.dark .driver-progressbar {
+  background: #6C5FC9;
 }
 
 /* Базовые стили */
 @layer base {
   * {
-    border-color: var(--color-gray-200);
+    border-color: var(--card-border);
   }
-  
+
   body {
-    background-color: var(--color-background);
-    color: var(--color-foreground);
+    background-color: var(--background);
+    color: var(--foreground);
   }
 }

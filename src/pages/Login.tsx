@@ -59,19 +59,19 @@ export default function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-card rounded-2xl shadow-xl p-8">
           <div className="text-center mb-8">
             <div className={`inline-flex items-center justify-center w-16 h-16 ${
               isLoginMode 
-                ? 'bg-gradient-to-br from-blue-500 to-purple-600' 
+                ? 'bg-gradient-to-br from-primary to-primary-dark' 
                 : 'bg-gradient-to-br from-green-500 to-emerald-600'
             } rounded-2xl mb-4`}>
               <LogIn className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900 mb-2">
+            <h1 className="text-3xl font-bold text-app mb-2">
               {isLoginMode ? 'Вход в систему' : 'Регистрация'}
             </h1>
-            <p className="text-gray-600">
+            <p className="text-app-2">
               {isLoginMode 
                 ? 'Войдите в ваш аккаунт WB Analytics' 
                 : 'Создайте новый аккаунт'}
@@ -89,15 +89,15 @@ export default function Login() {
             {/* Поле имени только для регистрации */}
             {!isLoginMode && (
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   Имя
                 </label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <User className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-app-muted" />
                   <input
                     type="text"
                     {...formRegister('name')}
-                    className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                    className="w-full pl-11 pr-4 py-3 border border-input rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                     placeholder="Ваше имя"
                   />
                 </div>
@@ -112,15 +112,15 @@ export default function Login() {
             )}
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-app-2 mb-2">
                 Email
               </label>
               <div className="relative">
-                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Mail className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-app-muted" />
                 <input
                   type="email"
                   {...formRegister('email')}
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                  className="w-full pl-11 pr-4 py-3 border border-input rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                   placeholder="your@email.com"
                 />
               </div>
@@ -130,15 +130,15 @@ export default function Login() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-app-2 mb-2">
                 Пароль
               </label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+                <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-app-muted" />
                 <input
                   type="password"
                   {...formRegister('password')}
-                  className="w-full pl-11 pr-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                  className="w-full pl-11 pr-4 py-3 border border-input rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                   placeholder="••••••••"
                 />
               </div>
@@ -147,7 +147,7 @@ export default function Login() {
               )}
               
               {!isLoginMode && (
-                <p className="mt-2 text-xs text-gray-500">
+                <p className="mt-2 text-xs text-app-muted">
                   Пароль должен содержать не менее 6 символов
                 </p>
               )}
@@ -173,7 +173,7 @@ export default function Login() {
               disabled={isLoading}
               className={`w-full py-3.5 px-4 font-semibold rounded-xl focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl ${
                 isLoginMode
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 focus:ring-blue-300 text-white'
+                  ? 'bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary focus:ring-blue-300 text-white'
                   : 'bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700 focus:ring-green-300 text-white'
               }`}
             >
@@ -190,10 +190,10 @@ export default function Login() {
             </button>
           </form>
 
-          <div className="mt-8 pt-6 border-t border-gray-200">
+          <div className="mt-8 pt-6 border-t border-card">
             <button
               onClick={toggleMode}
-              className="w-full py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition"
+              className="w-full py-3 px-4 border border-input text-app-2 font-medium rounded-xl hover:bg-hover transition"
             >
               {isLoginMode
                 ? 'Нет аккаунта? Зарегистрироваться'
@@ -202,7 +202,7 @@ export default function Login() {
           </div>
 
           <div className="mt-6 text-center">
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-app-muted">
               {isLoginMode
                 ? 'Входя в систему, вы соглашаетесь с нашими'
                 : 'Регистрируясь, вы соглашаетесь с нашими'}
@@ -219,7 +219,7 @@ export default function Login() {
         </div>
 
         <div className="text-center mt-8">
-          <p className="text-gray-500 text-sm">
+          <p className="text-app-muted text-sm">
             © 2025 WB Analytics Dashboard. Все права защищены.
           </p>
         </div>

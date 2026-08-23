@@ -144,64 +144,18 @@ export default function TenantProfile() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      {/* Шапка */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center mr-3">
-                  <User className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">Личный кабинет</span>
-              </div>
-              
-              <nav className="ml-10 flex space-x-8">
-                <a
-                  href="/analytics"
-                  className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300"
-                >
-                  Аналитика
-                </a>
-                <a
-                  href="/products"
-                  className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300"
-                >
-                  Товары
-                </a>
-                <a
-                  href="/taxes"
-                  className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300"
-                >
-                  Налоговые ставки
-                </a>
-              </nav>
-            </div>
-            
-            <div className="flex items-center space-x-4">
-              <button
-                onClick={() => window.history.back()}
-                className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
-              >
-                Назад
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex flex-col lg:flex-row gap-8">
           {/* Левая панель - навигация и информация */}
           <div className="lg:w-1/4 space-y-6">
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+            <div className="bg-card rounded-xl shadow-sm border border-card p-6">
               <div className="text-center mb-6">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="w-24 h-24 bg-gradient-to-br from-primary to-primary-dark rounded-full flex items-center justify-center mx-auto mb-4">
                   <User className="w-12 h-12 text-white" />
                 </div>
-                <h2 className="text-xl font-bold text-gray-900">{user?.name || 'Пользователь'}</h2>
-                <p className="text-gray-600 text-sm">{user?.email}</p>
+                <h2 className="text-xl font-bold text-app">{user?.name || 'Пользователь'}</h2>
+                <p className="text-app-2 text-sm">{user?.email}</p>
                 <div className="mt-2">
                   <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                     user?.is_active 
@@ -215,16 +169,16 @@ export default function TenantProfile() {
 
               <div className="space-y-4">
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">ID:</span>
-                  <span className="font-mono text-gray-900">{user?.id}</span>
+                  <span className="text-app-muted">ID:</span>
+                  <span className="font-mono text-app">{user?.id}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Аккаунт создан:</span>
-                  <span className="text-gray-900">{formatDate(user?.created_at)}</span>
+                  <span className="text-app-muted">Аккаунт создан:</span>
+                  <span className="text-app">{formatDate(user?.created_at)}</span>
                 </div>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">Последний вход:</span>
-                  <span className="text-gray-900">{formatDate(user?.last_login)}</span>
+                  <span className="text-app-muted">Последний вход:</span>
+                  <span className="text-app">{formatDate(user?.last_login)}</span>
                 </div>
                 {user?.email_verified && (
                   <div className="flex items-center text-sm text-green-600">
@@ -236,14 +190,14 @@ export default function TenantProfile() {
             </div>
 
             {/* Навигация */}
-            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4">
+            <div className="bg-card rounded-xl shadow-sm border border-card p-4">
               <nav className="space-y-2">
                 <button
                   onClick={() => setActiveTab('profile')}
                   className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition ${
                     activeTab === 'profile'
                       ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      : 'text-app-2 hover:bg-hover'
                   }`}
                 >
                   <User className="w-5 h-5" />
@@ -255,7 +209,7 @@ export default function TenantProfile() {
                   className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition ${
                     activeTab === 'security'
                       ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      : 'text-app-2 hover:bg-hover'
                   }`}
                 >
                   <Shield className="w-5 h-5" />
@@ -267,7 +221,7 @@ export default function TenantProfile() {
                   className={`w-full text-left px-4 py-3 rounded-lg flex items-center space-x-3 transition ${
                     activeTab === 'api'
                       ? 'bg-blue-50 text-blue-700 border border-blue-200'
-                      : 'text-gray-700 hover:bg-gray-50'
+                      : 'text-app-2 hover:bg-hover'
                   }`}
                 >
                   <Key className="w-5 h-5" />
@@ -298,28 +252,28 @@ export default function TenantProfile() {
 
             {/* Вкладка профиля */}
             {activeTab === 'profile' && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="bg-card rounded-xl shadow-sm border border-card p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">Информация профиля</h2>
+                  <h2 className="text-xl font-bold text-app">Информация профиля</h2>
                   <div className="flex items-center space-x-2">
-                    <Globe className="w-5 h-5 text-gray-400" />
-                    <span className="text-sm text-gray-500">Личные данные</span>
+                    <Globe className="w-5 h-5 text-app-muted" />
+                    <span className="text-sm text-app-muted">Личные данные</span>
                   </div>
                 </div>
 
                 <form onSubmit={profileForm.handleSubmit(handleProfileSubmit)} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-app-2 mb-2">
                         <div className="flex items-center gap-2">
-                          <User className="w-4 h-4 text-gray-400" />
+                          <User className="w-4 h-4 text-app-muted" />
                           <span>Имя</span>
                         </div>
                       </label>
                       <input
                         type="text"
                         {...profileForm.register('name')}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        className="w-full px-4 py-3 border border-input rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                         placeholder="Ваше имя"
                       />
                       {profileForm.formState.errors.name && (
@@ -330,16 +284,16 @@ export default function TenantProfile() {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-app-2 mb-2">
                         <div className="flex items-center gap-2">
-                          <Mail className="w-4 h-4 text-gray-400" />
+                          <Mail className="w-4 h-4 text-app-muted" />
                           <span>Email</span>
                         </div>
                       </label>
                       <input
                         type="email"
                         {...profileForm.register('email')}
-                        className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                        className="w-full px-4 py-3 border border-input rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                         placeholder="your@email.com"
                       />
                       {profileForm.formState.errors.email && (
@@ -350,12 +304,12 @@ export default function TenantProfile() {
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t border-gray-200">
+                  <div className="pt-6 border-t border-card">
                     <div className="flex justify-end">
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 transition flex items-center disabled:opacity-50"
+                        className="px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white font-medium rounded-xl hover:from-primary-dark hover:to-primary transition flex items-center disabled:opacity-50"
                       >
                         {isLoading ? (
                           <>
@@ -377,32 +331,32 @@ export default function TenantProfile() {
 
             {/* Вкладка безопасности */}
             {activeTab === 'security' && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="bg-card rounded-xl shadow-sm border border-card p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">Безопасность</h2>
+                  <h2 className="text-xl font-bold text-app">Безопасность</h2>
                   <div className="flex items-center space-x-2">
-                    <Shield className="w-5 h-5 text-gray-400" />
-                    <span className="text-sm text-gray-500">Защита аккаунта</span>
+                    <Shield className="w-5 h-5 text-app-muted" />
+                    <span className="text-sm text-app-muted">Защита аккаунта</span>
                   </div>
                 </div>
 
                 <form onSubmit={passwordForm.handleSubmit(handlePasswordSubmit)} className="space-y-6">
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                      <label className="block text-sm font-medium text-app-2 mb-2">
                         Текущий пароль
                       </label>
                       <div className="relative">
                         <input
                           type={showPassword.current ? "text" : "password"}
                           {...passwordForm.register('current_password')}
-                          className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition pr-12"
+                          className="w-full px-4 py-3 border border-input rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition pr-12"
                           placeholder="••••••••"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(prev => ({ ...prev, current: !prev.current }))}
-                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-app-muted hover:text-app-2"
                         >
                           {showPassword.current ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                         </button>
@@ -416,20 +370,20 @@ export default function TenantProfile() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-app-2 mb-2">
                           Новый пароль
                         </label>
                         <div className="relative">
                           <input
                             type={showPassword.new ? "text" : "password"}
                             {...passwordForm.register('new_password')}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition pr-12"
+                            className="w-full px-4 py-3 border border-input rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition pr-12"
                             placeholder="••••••••"
                           />
                           <button
                             type="button"
                             onClick={() => setShowPassword(prev => ({ ...prev, new: !prev.new }))}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-app-muted hover:text-app-2"
                           >
                             {showPassword.new ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                           </button>
@@ -442,20 +396,20 @@ export default function TenantProfile() {
                       </div>
 
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-app-2 mb-2">
                           Подтверждение пароля
                         </label>
                         <div className="relative">
                           <input
                             type={showPassword.confirm ? "text" : "password"}
                             {...passwordForm.register('confirm_password')}
-                            className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition pr-12"
+                            className="w-full px-4 py-3 border border-input rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition pr-12"
                             placeholder="••••••••"
                           />
                           <button
                             type="button"
                             onClick={() => setShowPassword(prev => ({ ...prev, confirm: !prev.confirm }))}
-                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700"
+                            className="absolute right-3 top-1/2 transform -translate-y-1/2 text-app-muted hover:text-app-2"
                           >
                             {showPassword.confirm ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                           </button>
@@ -469,12 +423,12 @@ export default function TenantProfile() {
                     </div>
                   </div>
 
-                  <div className="pt-6 border-t border-gray-200">
+                  <div className="pt-6 border-t border-card">
                     <div className="flex justify-end">
                       <button
                         type="submit"
                         disabled={isLoading}
-                        className="px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-purple-700 transition flex items-center disabled:opacity-50"
+                        className="px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white font-medium rounded-xl hover:from-primary-dark hover:to-primary transition flex items-center disabled:opacity-50"
                       >
                         {isLoading ? (
                           <>
@@ -510,32 +464,32 @@ export default function TenantProfile() {
 
             {/* Вкладка API ключей */}
             {activeTab === 'api' && (
-              <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+              <div className="bg-card rounded-xl shadow-sm border border-card p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <h2 className="text-xl font-bold text-gray-900">API ключи</h2>
+                  <h2 className="text-xl font-bold text-app">API ключи</h2>
                   <div className="flex items-center space-x-2">
-                    <Key className="w-5 h-5 text-gray-400" />
-                    <span className="text-sm text-gray-500">Интеграции с маркетплейсами</span>
+                    <Key className="w-5 h-5 text-app-muted" />
+                    <span className="text-sm text-app-muted">Интеграции с маркетплейсами</span>
                   </div>
                 </div>
 
                 <div className="space-y-6">
                   {/* Wildberries API */}
-                  <div className="p-6 border border-gray-200 rounded-xl">
+                  <div className="p-6 border border-card rounded-xl">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
                           <Building className="w-6 h-6 text-blue-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">Wildberries API</h3>
-                          <p className="text-sm text-gray-500">Для синхронизации данных с Wildberries</p>
+                          <h3 className="font-semibold text-app">Wildberries API</h3>
+                          <p className="text-sm text-app-muted">Для синхронизации данных с Wildberries</p>
                         </div>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                         user?.wb_api_key 
                           ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
+                          : 'bg-hover text-app'
                       }`}>
                         {user?.wb_api_key ? 'Настроен' : 'Не настроен'}
                       </span>
@@ -543,7 +497,7 @@ export default function TenantProfile() {
 
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-app-2 mb-2">
                           API ключ Wildberries
                           {user?.wb_api_key_expire_at ? (
                             <span className="ml-2 text-blue-600 font-normal">
@@ -557,13 +511,13 @@ export default function TenantProfile() {
                               type={showWbKey ? 'text' : 'password'}
                               value={wbApiKeyInput}
                               onChange={(e) => setWbApiKeyInput(e.target.value)}
-                              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                              className="w-full px-4 py-3 pr-12 border border-input rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                               placeholder="Введите API ключ Wildberries"
                             />
                             <button
                               type="button"
                               onClick={() => setShowWbKey((v) => !v)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-app-muted hover:text-app-2"
                               tabIndex={-1}
                             >
                               {showWbKey ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
@@ -589,7 +543,7 @@ export default function TenantProfile() {
                           </button>
                         </div>
                       </div>
-                      <div className="text-sm text-gray-600">
+                      <div className="text-sm text-app-2">
                         <p>Как получить ключ:</p>
                         <ol className="list-decimal list-inside space-y-1 mt-1">
                           <li>Зайдите в личный кабинет Wildberries</li>
@@ -601,21 +555,21 @@ export default function TenantProfile() {
                   </div>
 
                   {/* Ozon API 
-                  <div className="p-6 border border-gray-200 rounded-xl">
+                  <div className="p-6 border border-card rounded-xl">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
                         <div className="w-10 h-10 bg-orange-100 rounded-lg flex items-center justify-center">
                           <Globe className="w-6 h-6 text-orange-600" />
                         </div>
                         <div>
-                          <h3 className="font-semibold text-gray-900">Ozon API</h3>
-                          <p className="text-sm text-gray-500">Для синхронизации данных с Ozon (опционально)</p>
+                          <h3 className="font-semibold text-app">Ozon API</h3>
+                          <p className="text-sm text-app-muted">Для синхронизации данных с Ozon (опционально)</p>
                         </div>
                       </div>
                       <span className={`px-3 py-1 rounded-full text-sm font-medium ${
                         user?.ozon_api_key 
                           ? 'bg-green-100 text-green-800' 
-                          : 'bg-gray-100 text-gray-800'
+                          : 'bg-hover text-app'
                       }`}>
                         {user?.ozon_api_key ? 'Настроен' : 'Не настроен'}
                       </span>
@@ -623,7 +577,7 @@ export default function TenantProfile() {
 
                     <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-medium text-app-2 mb-2">
                           API ключ Ozon
                         </label>
                         <div className="flex gap-3">
@@ -631,7 +585,7 @@ export default function TenantProfile() {
                             type="password"
                             value={user?.ozon_api_key || ''}
                             onChange={(e) => profileForm.setValue('ozon_api_key', e.target.value)}
-                            className="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
+                            className="flex-1 px-4 py-3 border border-input rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none transition"
                             placeholder="Введите API ключ"
                           />
                           <button
@@ -665,7 +619,7 @@ export default function TenantProfile() {
             )}
           </div>
         </div>
-      </main>
+      </div>
     </div>
   );
 }

@@ -73,7 +73,7 @@ export default function ImageTooltip({ imageUrl, alt, children }: ImageTooltipPr
       {isVisible && (
         <div
           ref={tooltipRef}
-          className="fixed z-[9999] bg-white rounded-lg shadow-2xl border border-gray-200 p-3"
+          className="fixed z-[9999] bg-card rounded-lg shadow-2xl border border-card p-3"
           style={{
             top: `${position.top}px`,
             left: `${position.left}px`,

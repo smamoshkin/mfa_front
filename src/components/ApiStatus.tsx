@@ -57,19 +57,19 @@ export default function ApiStatus() {
           </div>
           
           <div className="flex-grow">
-            <div className="font-medium text-gray-900">
+            <div className="font-medium text-app">
               {status.isHealthy ? 'API доступен' : 'Проблемы с API'}
             </div>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-app-2">
               {status.message}
               {status.responseTime && (
-                <span className="ml-2 text-gray-500">
+                <span className="ml-2 text-app-muted">
                   ({status.responseTime}ms)
                 </span>
               )}
             </div>
             {lastChecked && (
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs text-app-muted mt-1">
                 Проверено: {lastChecked.toLocaleTimeString()}
               </div>
             )}

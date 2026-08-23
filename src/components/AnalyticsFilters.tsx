@@ -44,11 +44,11 @@ export default function AnalyticsFiltersComponent({ filters, onFilterChange, onA
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-8">
+    <div className="bg-card rounded-xl shadow-sm border border-card p-4 mb-8">
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => navigateMonth('prev')}
-          className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+          className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium bg-hover text-app-2 hover:bg-gray-200 transition"
         >
           <ChevronLeft className="w-4 h-4" />
           Предыдущий месяц
@@ -59,7 +59,7 @@ export default function AnalyticsFiltersComponent({ filters, onFilterChange, onA
           className={`px-4 py-2 rounded-lg text-sm font-medium transition ${
             isCurrentMonthSelected()
               ? 'bg-blue-100 text-blue-700 border border-blue-300'
-              : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+              : 'bg-hover text-app-2 hover:bg-gray-200'
           }`}
         >
           Текущий месяц
@@ -67,7 +67,7 @@ export default function AnalyticsFiltersComponent({ filters, onFilterChange, onA
 
         <button
           onClick={() => navigateMonth('next')}
-          className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium bg-gray-100 text-gray-700 hover:bg-gray-200 transition"
+          className="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium bg-hover text-app-2 hover:bg-gray-200 transition"
         >
           Следующий месяц
           <ChevronRight className="w-4 h-4" />
@@ -76,19 +76,19 @@ export default function AnalyticsFiltersComponent({ filters, onFilterChange, onA
         <div className="w-px h-8 bg-gray-200 mx-1" />
 
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-gray-400" />
+          <Calendar className="w-4 h-4 text-app-muted" />
           <input
             type="date"
             value={filters.date_from}
             onChange={(e) => handleDateChange('date_from', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="px-3 py-2 border border-input rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           />
-          <span className="text-gray-400 text-sm">—</span>
+          <span className="text-app-muted text-sm">—</span>
           <input
             type="date"
             value={filters.date_to}
             onChange={(e) => handleDateChange('date_to', e.target.value)}
-            className="px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+            className="px-3 py-2 border border-input rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
           />
         </div>
 

@@ -135,27 +135,27 @@ export default function CostModal({ productId, productName, cost, isOpen, onClos
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
+      <div className="bg-card rounded-2xl shadow-2xl w-full max-w-md">
         {/* Заголовок */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-200">
+        <div className="flex items-center justify-between p-6 border-b border-card">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-green-100 rounded-lg">
               <DollarSign className="w-5 h-5 text-green-600" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-gray-900">
+              <h3 className="text-lg font-bold text-app">
                 {cost ? 'Редактировать себестоимость' : 'Добавить себестоимость'}
               </h3>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-app-muted">
                 Товар: {productName}
               </p>
             </div>
           </div>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-lg transition"
+            className="p-2 hover:bg-hover rounded-lg transition"
           >
-            <X className="w-5 h-5 text-gray-500" />
+            <X className="w-5 h-5 text-app-muted" />
           </button>
         </div>
 
@@ -186,9 +186,9 @@ export default function CostModal({ productId, productName, cost, isOpen, onClos
           <div className="space-y-6">
             {/* Себестоимость */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-app-2 mb-2">
                 <div className="flex items-center gap-2">
-                  <DollarSign className="w-4 h-4 text-gray-400" />
+                  <DollarSign className="w-4 h-4 text-app-muted" />
                   <span>Себестоимость (₽)*</span>
                 </div>
               </label>
@@ -199,11 +199,11 @@ export default function CostModal({ productId, productName, cost, isOpen, onClos
                   step="0.01"
                   value={formData.cost || ''}
                   onChange={(e) => handleChange('cost', parseFloat(e.target.value) || 0)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none pl-12"
+                  className="w-full px-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none pl-12"
                   placeholder="0.00"
                   required
                 />
-                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">
+                <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-app-muted">
                   ₽
                 </span>
               </div>
@@ -212,9 +212,9 @@ export default function CostModal({ productId, productName, cost, isOpen, onClos
             {/* Даты действия */}
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-400" />
+                    <Calendar className="w-4 h-4 text-app-muted" />
                     <span>Дата начала*</span>
                   </div>
                 </label>
@@ -222,22 +222,22 @@ export default function CostModal({ productId, productName, cost, isOpen, onClos
                   type="date"
                   value={formData.start_date}
                   onChange={(e) => handleChange('start_date', e.target.value)}
-                  className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                  className="w-full px-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
                   required
                 />
                 {formData.start_date && (
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-app-muted">
                     {format(new Date(formData.start_date), 'd MMMM yyyy', { locale: ru })}
                   </p>
                 )}
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-app-2 mb-2">
                   <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-gray-400" />
+                    <Calendar className="w-4 h-4 text-app-muted" />
                     <span>Дата окончания</span>
-                    {/*<span className="text-xs text-gray-400">(необязательно)</span>*/}
+                    {/*<span className="text-xs text-app-muted">(необязательно)</span>*/}
                   </div>
                 </label>
                 <input
@@ -247,14 +247,14 @@ export default function CostModal({ productId, productName, cost, isOpen, onClos
                   className={`w-full px-4 py-2.5 border rounded-lg focus:ring-2 focus:outline-none ${
                     endDateError
                       ? 'border-red-300 focus:ring-red-500 focus:border-red-500'
-                      : 'border-gray-300 focus:ring-green-500 focus:border-green-500'
+                      : 'border-input focus:ring-green-500 focus:border-green-500'
                   }`}
                   placeholder="Бессрочно"
                 />
                 {endDateError ? (
                   <p className="mt-1 text-xs text-red-600">{endDateError}</p>
                 ) : formData.end_date ? (
-                  <p className="mt-1 text-xs text-gray-500">
+                  <p className="mt-1 text-xs text-app-muted">
                     {format(new Date(formData.end_date), 'd MMMM yyyy', { locale: ru })}
                   </p>
                 ) : (
@@ -267,9 +267,9 @@ export default function CostModal({ productId, productName, cost, isOpen, onClos
 
             {/* Кто создал */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-medium text-app-2 mb-2">
                 <div className="flex items-center gap-2">
-                  <User className="w-4 h-4 text-gray-400" />
+                  <User className="w-4 h-4 text-app-muted" />
                   <span>Кто добавил</span>
                 </div>
               </label>
@@ -277,29 +277,29 @@ export default function CostModal({ productId, productName, cost, isOpen, onClos
                 type="text"
                 value={formData.created_by}
                 onChange={(e) => handleChange('created_by', e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
+                className="w-full px-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none"
                 placeholder="Ваше имя"
               />
             </div>
 
             {/* Информация о товаре */}
-            <div className="p-4 bg-gray-50 rounded-lg">
+            <div className="p-4 bg-card-2 rounded-lg">
               <div className="flex items-center space-x-3">
-                <Package className="w-5 h-5 text-gray-400" />
+                <Package className="w-5 h-5 text-app-muted" />
                 <div>
-                  <p className="text-sm font-medium text-gray-900">Информация о товаре</p>
-                  <p className="text-sm text-gray-600">ID: {productId} | {productName}</p>
+                  <p className="text-sm font-medium text-app">Информация о товаре</p>
+                  <p className="text-sm text-app-2">ID: {productId} | {productName}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Кнопки */}
-          <div className="mt-8 pt-6 border-t border-gray-200 flex space-x-3">
+          <div className="mt-8 pt-6 border-t border-card flex space-x-3">
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 py-3 px-4 border border-gray-300 text-gray-700 font-medium rounded-xl hover:bg-gray-50 transition"
+              className="flex-1 py-3 px-4 border border-input text-app-2 font-medium rounded-xl hover:bg-hover transition"
               disabled={isLoading}
             >
               Отмена

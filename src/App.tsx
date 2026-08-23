@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { useInactivityLogout } from './hooks/useInactivityLogout';
+import AppLayout from './components/layout/AppLayout';
 import Login from './pages/Login';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
@@ -28,56 +29,35 @@ function App() {
 
   return (
     <Router>
-      <ToastNotification /> 
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+      <ToastNotification />
+      <div className="min-h-screen bg-app">
         <Routes>
           <Route path="/login" element={
             <PublicRoute>
               <Login />
             </PublicRoute>
           } />
-          
-          <Route path="/products" element={  
-            <PrivateRoute>
-              <Products />
-            </PrivateRoute>
-          } />
 
-          <Route path="/products/:id" element={  
-            <PrivateRoute>
-              <ProductDetail />
-            </PrivateRoute>
-          } />
-          
-          <Route path="/analytics" element={  // Добавляем новый маршрут
-            <PrivateRoute>
-              <Analytics />
-            </PrivateRoute>
-          } />
-
-          <Route path="/profile" element={
-            <PrivateRoute>
-              <TenantProfile />
-            </PrivateRoute>
-          } />
-          
-          <Route path="/taxes" element={
-            <PrivateRoute>
-              <Taxes />
-            </PrivateRoute>
-          } />
+          {/* Все защищённые страницы — внутри общего каркаса (хедер + навигация) */}
+          <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
+            <Route path="/analytics" element={<Analytics />} />
+            <Route path="/products" element={<Products />} />
+            <Route path="/products/:id" element={<ProductDetail />} />
+            <Route path="/profile" element={<TenantProfile />} />
+            <Route path="/taxes" element={<Taxes />} />
+          </Route>
 
           <Route path="/api-test" element={  // Добавляем маршрут для тестирования
             <ApiTest />
           } />
-          
+
           <Route path="/" element={<Navigate to="/analytics" />} />
-          
+
           <Route path="*" element={
             <div className="flex items-center justify-center h-screen">
               <div className="text-center">
-                <h1 className="text-4xl font-bold text-gray-800 mb-4">404</h1>
-                <p className="text-gray-600">Страница не найдена</p>
+                <h1 className="text-4xl font-bold text-app mb-4">404</h1>
+                <p className="text-app-2">Страница не найдена</p>
               </div>
             </div>
           } />

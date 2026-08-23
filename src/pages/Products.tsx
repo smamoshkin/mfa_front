@@ -1,15 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Search, Filter, Plus, Edit2, Trash2, DollarSign, Package, X, CircleDollarSign, User } from 'lucide-react';
+import { Search, Filter, Plus, Edit2, Trash2, DollarSign, Package, X, CircleDollarSign } from 'lucide-react';
 import { productsApi } from '../api/productsApi';
 import type { ProductWithMetrics } from '../types/api';
 import ProductModal from '../components/ProductModal';
 import ProductDeleteModal from '../components/ProductDeleteModal';
 import CostImportModal from '../components/CostImportModal';
-import { Link, useNavigate } from 'react-router-dom';
-import { useAuthStore } from '../store/authStore';
-
+import { useNavigate } from 'react-router-dom';
 export default function Products() {
-  const { user, logout } = useAuthStore();
   const [products, setProducts] = useState<ProductWithMetrics[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<ProductWithMetrics[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -220,78 +217,25 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
   const categories = Array.from(new Set(products.map(p => p.category)));
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-      <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <div className="flex items-center">
-                <div className="w-8 h-8 bg-gradient-to-br from-green-600 to-emerald-600 rounded-lg flex items-center justify-center mr-3">
-                  <Package className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-gray-900">Товары</span>
-              </div>
-
-              <nav className="ml-10 flex space-x-8">
-                <Link
-                  to="/analytics"
-                  className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300"
-                >
-                  Аналитика
-                </Link>
-                <Link
-                  to="/products"
-                  className="text-blue-600 font-medium border-b-2 border-blue-600 px-1 pb-1"
-                >
-                  Товары
-                </Link>
-                <Link
-                  to="/taxes"
-                  className="text-gray-500 hover:text-gray-700 font-medium px-1 pb-1 hover:border-b-2 hover:border-gray-300"
-                >
-                  Налоговые ставки
-                </Link>
-              </nav>
-
-            </div>
-
-            <div className="flex items-center space-x-4">
-              <div className="relative">
-                <Link to="/profile" className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded-lg transition">
-                  <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center">
-                    <User className="w-4 h-4 text-white" />
-                  </div>
-                  <span className="font-medium text-gray-700">{user?.name || user?.email}</span>
-                </Link>
-              </div>
-
-              <button
-                onClick={logout}
-                className="px-4 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition"
-              >
-                Выйти
-              </button>
-            </div>
-          </div>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Заголовок и кнопка добавления */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Каталог товаров</h1>
-            <p className="text-gray-600 mt-2">Управление товарами и отслеживание показателей</p>
+            <h1 className="text-3xl font-bold text-app">Каталог товаров</h1>
+            <p className="text-app-2 mt-2">Управление товарами и отслеживание показателей</p>
           </div>
           <div className="flex gap-3">
             <button
+              data-tour="products-actions"
               onClick={() => setIsCostImportOpen(true)}
-              className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-medium rounded-xl hover:from-blue-700 hover:to-indigo-700 transition flex items-center shadow-lg"
+              className="px-6 py-3 bg-gradient-to-r from-primary to-primary-dark text-white font-medium rounded-xl hover:from-primary-dark hover:to-primary transition flex items-center shadow-lg"
             >
               <DollarSign className="w-5 h-5 mr-2" />
               Себестоимости из файла
             </button>
             <button
+              data-tour="products-add"
               onClick={handleAddProduct}
               className="px-6 py-3 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition flex items-center shadow-lg"
             >
@@ -302,16 +246,16 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
         </div>
 
         {/* Фильтры и поиск */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 mb-8">
+        <div data-tour="products-search" className="bg-card rounded-xl shadow-sm border border-card p-6 mb-8">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 text-app-muted" />
               <input
                 type="text"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Поиск по названию, артикулу, штрихкоду..."
-                className="w-full pl-10 pr-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                placeholder="Поиск по названию, артикулу..."
+                className="w-full pl-10 pr-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none"
               />
             </div>
 
@@ -319,7 +263,7 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
               <select
                 value={selectedCategory}
                 onChange={(e) => setSelectedCategory(e.target.value)}
-                className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none"
+                className="w-full px-4 py-2.5 border border-input rounded-lg focus:ring-2 focus:ring-primary focus:border-primary outline-none"
               >
                 <option value="">Все категории</option>
                 {categories.map(category => (
@@ -336,7 +280,7 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
                   onChange={(e) => setShowActiveOnly(e.target.checked)}
                   className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
                 />
-                <span className="text-gray-700">Только активные</span>
+                <span className="text-app-2">Только активные</span>
               </label>
               
               {(search || selectedCategory || !showActiveOnly) && (
@@ -346,7 +290,7 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
                     setSelectedCategory('');
                     setShowActiveOnly(true);
                   }}
-                  className="flex items-center space-x-2 px-4 py-2 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition"
+                  className="flex items-center space-x-2 px-4 py-2 text-sm text-app-2 hover:text-app hover:bg-hover rounded-lg transition"
                 >
                   <X className="w-4 h-4" />
                   <span>Сбросить фильтры</span>
@@ -356,12 +300,12 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
           </div>
           
           <div className="flex justify-between items-center">
-            <span className="text-sm text-gray-600">
+            <span className="text-sm text-app-2">
               Найдено: {filteredProducts.length} товаров ({totals.activeCount} активных)
             </span>
             <div className="flex items-center space-x-2">
-              <Filter className="w-4 h-4 text-gray-400" />
-              <span className="text-sm text-gray-600">
+              <Filter className="w-4 h-4 text-app-muted" />
+              <span className="text-sm text-app-2">
                 Фильтры применяются в реальном времени
               </span>
             </div>
@@ -370,7 +314,7 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
 
         {/* Статистика 
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-card rounded-xl shadow-sm border border-card p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="p-2 rounded-lg bg-blue-100">
                 <DollarSign className="w-6 h-6 text-blue-600" />
@@ -379,13 +323,13 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
                 +12.5%
               </span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
+            <h3 className="text-2xl font-bold text-app mb-1">
               {Math.round(totals.totalRevenue / 1000)}K ₽
             </h3>
-            <p className="text-gray-500 text-sm">Выручка за 30 дней</p>
+            <p className="text-app-muted text-sm">Выручка за 30 дней</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-card rounded-xl shadow-sm border border-card p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="p-2 rounded-lg bg-green-100">
                 <TrendingUp className="w-6 h-6 text-green-600" />
@@ -394,28 +338,28 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
                 +8.2%
               </span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
+            <h3 className="text-2xl font-bold text-app mb-1">
               {totals.totalSales.toLocaleString()}
             </h3>
-            <p className="text-gray-500 text-sm">Продажи за 30 дней</p>
+            <p className="text-app-muted text-sm">Продажи за 30 дней</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-card rounded-xl shadow-sm border border-card p-6">
             <div className="flex items-center justify-between mb-4">
-              <div className="p-2 rounded-lg bg-purple-100">
-                <BarChart3 className="w-6 h-6 text-purple-600" />
+              <div className="p-2 rounded-lg bg-primary-soft">
+                <BarChart3 className="w-6 h-6 text-primary" />
               </div>
               <span className="text-sm font-medium text-green-600 bg-green-50 px-2 py-1 rounded-full">
                 +3.1%
               </span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
+            <h3 className="text-2xl font-bold text-app mb-1">
               {totals.avgProfitability.toFixed(1)}%
             </h3>
-            <p className="text-gray-500 text-sm">Средняя рентабельность</p>
+            <p className="text-app-muted text-sm">Средняя рентабельность</p>
           </div>
 
-          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6">
+          <div className="bg-card rounded-xl shadow-sm border border-card p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="p-2 rounded-lg bg-orange-100">
                 <Package className="w-6 h-6 text-orange-600" />
@@ -424,48 +368,46 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
                 {filteredProducts.length}
               </span>
             </div>
-            <h3 className="text-2xl font-bold text-gray-900 mb-1">
+            <h3 className="text-2xl font-bold text-app mb-1">
               {totals.activeCount}
             </h3>
-            <p className="text-gray-500 text-sm">Активных товаров</p>
+            <p className="text-app-muted text-sm">Активных товаров</p>
           </div>
         </div>*/}
 
         {/* Таблица товаров */}
-        <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+        <div data-tour="products-table" className="bg-card rounded-xl shadow-sm border border-card overflow-hidden">
           {isLoading ? (
             <div className="p-12 text-center">
-              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
-              <p className="mt-4 text-gray-600">Загрузка товаров...</p>
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-4 border-primary border-t-transparent"></div>
+              <p className="mt-4 text-app-2">Загрузка товаров...</p>
             </div>
           ) : filteredProducts.length === 0 ? (
             <div className="p-12 text-center">
-              <Package className="w-16 h-16 text-gray-300 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 mb-2">Товары не найдены</h3>
-              <p className="text-gray-600">Попробуйте изменить параметры поиска</p>
+              <Package className="w-16 h-16 text-app-muted/40 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-app mb-2">Товары не найдены</h3>
+              <p className="text-app-2">Попробуйте изменить параметры поиска</p>
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-50 border-b border-gray-200">
-                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Товар</th>
-                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Артикулы</th>
-                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Категория</th>
-                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Статус</th>
-                    {/* <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Продажи (30 дн.)</th> */}
-                    {/* <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Рентабельность</th> */}
-                    <th className="py-4 px-6 text-left text-sm font-semibold text-gray-900">Действия</th>
+                  <tr className="bg-card-2 border-b border-card">
+                    <th className="py-2.5 px-4 text-left text-xs font-semibold text-app-2 uppercase tracking-wide">Товар</th>
+                    <th className="py-2.5 px-4 text-left text-xs font-semibold text-app-2 uppercase tracking-wide">Артикулы</th>
+                    <th className="py-2.5 px-4 text-left text-xs font-semibold text-app-2 uppercase tracking-wide">Категория</th>
+                    <th className="py-2.5 px-4 text-left text-xs font-semibold text-app-2 uppercase tracking-wide">Статус</th>
+                    <th className="py-2.5 px-4 text-right text-xs font-semibold text-app-2 uppercase tracking-wide">Действия</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-100">
+                <tbody className="divide-y divide-card">
                   {filteredProducts.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50 transition">
-                      <td className="py-4 px-6">
+                    <tr key={product.id} className="hover:bg-hover transition group/row">
+                      <td className="py-2 px-4">
                         <div className="flex items-center space-x-3">
                           <div className="relative">
-                            <div 
-                              className="w-10 h-10 bg-gray-200 rounded-lg overflow-hidden flex-shrink-0 group"
+                            <div
+                              className="w-9 h-9 bg-hover rounded-lg overflow-hidden flex-shrink-0 group"
                               onMouseEnter={(e) => product.foto && showTooltip(product.foto, product.name, e)}
                               onMouseMove={(e) => {
                                 if (product.foto && tooltipState?.isVisible) {
@@ -482,8 +424,8 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
                               onMouseLeave={hideTooltip}
                             >
                               {product.foto ? (
-                                <img 
-                                  src={product.foto} 
+                                <img
+                                  src={product.foto}
                                   alt={product.name}
                                   className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-110"
                                   onError={(e) => {
@@ -491,106 +433,81 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
                                   }}
                                 />
                               ) : (
-                                <div className="w-full h-full bg-gray-100 flex items-center justify-center">
-                                  <Package className="w-5 h-5 text-gray-400" />
+                                <div className="w-full h-full bg-hover flex items-center justify-center">
+                                  <Package className="w-5 h-5 text-app-muted" />
                                 </div>
                               )}
-                              
+
                               {/* Индикатор что есть увеличенное изображение */}
                               {product.foto && (
                                 <div className="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-colors duration-200 rounded-lg pointer-events-none"></div>
                               )}
                             </div>
                           </div>
-                          
-                          <div>
-                            <div className="font-medium text-gray-900">{product.name}</div>
-                            <div className="text-sm text-gray-500 truncate max-w-xs">
+
+                          <div className="min-w-0">
+                            <div className="font-medium text-app text-sm truncate max-w-[240px]">{product.name}</div>
+                            <div className="text-xs text-app-muted truncate max-w-[240px]">
                               {product.description}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="py-4 px-6">
-                        <div className="space-y-1">
-                          <div className="text-sm">
-                            <span className="text-gray-500">SKU: </span>
-                            <span className="font-mono text-gray-900">{product.sku}</span>
+                      <td className="py-2 px-4">
+                        <div className="space-y-0.5 text-sm">
+                          <div>
+                            <span className="text-app-muted text-xs">SKU: </span>
+                            <span className="font-mono text-app">{product.sku}</span>
                           </div>
-                          <div className="text-sm">
-                            <span className="text-gray-500">WB: </span>
-                            <span className="font-mono text-gray-900">{product.marketplace_sku}</span>
+                          <div>
+                            <span className="text-app-muted text-xs">WB: </span>
+                            <span className="font-mono text-app">{product.marketplace_sku}</span>
                           </div>
-                          {product.barcode && (
-                            <div className="text-sm">
-                              <span className="text-gray-500">Штрихкод: </span>
-                              <span className="font-mono text-gray-900">{product.barcode}</span>
-                            </div>
-                          )}
                         </div>
                       </td>
-                      <td className="py-4 px-6">
-                        <span className="px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm">
+                      <td className="py-2 px-4">
+                        <span className="px-2.5 py-0.5 bg-hover text-app rounded-full text-xs">
                           {product.category}
                         </span>
                       </td>
-                      <td className="py-4 px-6">
-                        <div className={`px-3 py-1 rounded-full text-sm font-medium inline-flex items-center ${
-                          product.is_active 
-                            ? 'bg-green-100 text-green-800' 
-                            : 'bg-gray-100 text-gray-800'
+                      <td className="py-2 px-4">
+                        <div className={`px-2.5 py-0.5 rounded-full text-xs font-medium inline-flex items-center ${
+                          product.is_active
+                            ? 'bg-mint text-ink'
+                            : 'bg-hover text-app-muted'
                         }`}>
-                          <div className={`w-2 h-2 rounded-full mr-2 ${
-                            product.is_active ? 'bg-green-500' : 'bg-gray-400'
+                          <div className={`w-1.5 h-1.5 rounded-full mr-1.5 ${
+                            product.is_active ? 'bg-emerald-600' : 'bg-app-muted'
                           }`}></div>
                           {product.is_active ? 'Активен' : 'Неактивен'}
                         </div>
                       </td>
-                      {/* <td className="py-4 px-6">
-                        <div>
-                          <div className="font-medium text-gray-900">
-                            {product.last_month_sales?.toLocaleString() || '—'} шт.
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {product.last_month_revenue ? `${Math.round(product.last_month_revenue / 1000)}K ₽` : '—'}
-                          </div>
-                        </div>
-                      </td> 
-                      <td className="py-4 px-6">
-                        {product.profitability ? (
-                          <div className={`px-3 py-1 rounded-full text-sm font-medium text-center ${
-                            product.profitability > 30 ? 'bg-green-100 text-green-800' :
-                            product.profitability > 20 ? 'bg-yellow-100 text-yellow-800' :
-                            'bg-red-100 text-red-800'
-                          }`}>
-                            {product.profitability.toFixed(1)}%
-                          </div>
-                        ) : (
-                          <span className="text-gray-400">—</span>
-                        )}
-                      </td>*/}
-                      <td className="py-4 px-6">
-                        <div className="flex space-x-2">
+                      <td className="py-2 px-4">
+                        {/* Кнопки в высоту строки: белые, объёмные, с цветной тенью */}
+                        <div className="flex items-stretch justify-end gap-2">
                           <button
-                            onClick={() => navigate(`/products/${product.id}`)} // Добавляем переход
-                            className="p-2 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-lg transition"
+                            onClick={() => navigate(`/products/${product.id}`)}
+                            className="px-3 py-2 min-h-[44px] bg-card text-blue-600 rounded-lg border border-blue-200/60 shadow-md shadow-blue-500/25 hover:shadow-lg hover:shadow-blue-500/40 hover:-translate-y-px active:translate-y-0 active:shadow-sm transition flex items-center gap-1.5"
                             title="Себестоимость"
-                            >
+                          >
                             <CircleDollarSign className="w-4 h-4" />
+                            <span className="text-xs font-medium hidden lg:inline">Себестоимость</span>
                           </button>
                           <button
                             onClick={() => handleEditProduct(product)}
-                            className="p-2 text-green-600 hover:text-green-800 hover:bg-green-50 rounded-lg transition"
+                            className="px-3 py-2 min-h-[44px] bg-card text-emerald-600 rounded-lg border border-emerald-200/60 shadow-md shadow-emerald-500/25 hover:shadow-lg hover:shadow-emerald-500/40 hover:-translate-y-px active:translate-y-0 active:shadow-sm transition flex items-center gap-1.5"
                             title="Редактировать"
                           >
                             <Edit2 className="w-4 h-4" />
+                            <span className="text-xs font-medium hidden lg:inline">Редактировать</span>
                           </button>
                           <button
                             onClick={() => handleDeleteProduct(product)}
-                            className="p-2 text-red-600 hover:text-red-800 hover:bg-red-50 rounded-lg transition"
+                            className="px-3 py-2 min-h-[44px] bg-card text-red-600 rounded-lg border border-red-200/60 shadow-md shadow-red-500/25 hover:shadow-lg hover:shadow-red-500/40 hover:-translate-y-px active:translate-y-0 active:shadow-sm transition flex items-center gap-1.5"
                             title="Удалить"
                           >
                             <Trash2 className="w-4 h-4" />
+                            <span className="text-xs font-medium hidden lg:inline">Удалить</span>
                           </button>
                         </div>
                       </td>
@@ -625,7 +542,7 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
             />
             
             {/* Контейнер изображения */}
-            <div className="bg-white rounded-xl shadow-2xl border border-gray-200 p-3 ml-2">
+            <div className="bg-card rounded-xl shadow-2xl border border-card p-3 ml-2">
               <div className="w-64 h-64 overflow-hidden rounded-lg">
                 <img
                   src={tooltipState.imageUrl}
@@ -639,7 +556,7 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
               </div>
               
               {/* Подпись 
-              <div className="mt-2 text-xs text-gray-500 text-center">
+              <div className="mt-2 text-xs text-app-muted text-center">
                 Наведите на другое изображение
               </div>*/}
             </div>
@@ -650,29 +567,29 @@ const getAdjustedPosition = (x: number, y: number, tooltipWidth = 280, tooltipHe
         {/* Пагинация (пока заглушка) */}
         {/*filteredProducts.length > 0 && (
           <div className="mt-6 flex justify-between items-center">
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-app-2">
               Показано {filteredProducts.length} из {products.length} товаров
             </div>
             <div className="flex space-x-2">
-              <button className="px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition">
+              <button className="px-3 py-2 text-sm text-app-2 hover:text-app hover:bg-hover rounded-lg transition">
                 ← Назад
               </button>
               <button className="px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition">
                 1
               </button>
-              <button className="px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition">
+              <button className="px-3 py-2 text-sm text-app-2 hover:text-app hover:bg-hover rounded-lg transition">
                 2
               </button>
-              <button className="px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition">
+              <button className="px-3 py-2 text-sm text-app-2 hover:text-app hover:bg-hover rounded-lg transition">
                 3
               </button>
-              <button className="px-3 py-2 text-sm text-gray-700 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition">
+              <button className="px-3 py-2 text-sm text-app-2 hover:text-app hover:bg-hover rounded-lg transition">
                 Далее →
               </button>
             </div>
           </div>
         )*/}
-      </main>
+      </div>
 
       {/* Модалка для товара */}
       {isModalOpen && (
