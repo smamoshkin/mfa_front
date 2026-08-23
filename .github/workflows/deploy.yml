@@ -61,6 +61,8 @@ jobs:
           script: |
             cd /home/market_app/marketfinanceapp
             export FRONTEND_TAG=${{ needs.build.outputs.tag }}
+            # закрепляем версию в .env — compose не "сползёт" на latest при последующих up
+            grep -q "^FRONTEND_TAG=" .env && sed -i "s/^FRONTEND_TAG=.*/FRONTEND_TAG=${{ needs.build.outputs.tag }}/" .env || echo "FRONTEND_TAG=${{ needs.build.outputs.tag }}" >> .env
             docker compose pull frontend
             docker compose up -d --force-recreate frontend
             docker image prune -f
