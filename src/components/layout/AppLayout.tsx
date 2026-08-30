@@ -3,7 +3,8 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import GuidedTour from '../onboarding/GuidedTour';
 import ThemeToggle from './ThemeToggle';
-import { BarChart3, LogOut, Menu, User, X } from 'lucide-react';
+import FaappLogo from './FaappLogo';
+import { LogOut, Menu, User, X } from 'lucide-react';
 
 const NAV_ITEMS = [
   { to: '/analytics', label: 'Аналитика' },
@@ -39,13 +40,8 @@ export default function AppLayout() {
           <div className="flex justify-between items-center h-16">
             {/* Логотип + основная навигация */}
             <div className="flex items-center">
-              <Link to="/analytics" className="flex items-center mr-8">
-                <div className="w-8 h-8 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center mr-3">
-                  <BarChart3 className="w-5 h-5 text-white" />
-                </div>
-                <span className="text-xl font-bold text-app hidden sm:inline">
-                  FAAPP
-                </span>
+              <Link to="/analytics" className="flex items-center mr-8" title="FAAPP">
+                <FaappLogo />
               </Link>
 
               <nav data-tour="nav" className="hidden md:flex space-x-8">

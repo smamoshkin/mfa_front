@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import AuthCard from '../components/auth/AuthCard';
 import ThemeToggle from '../components/layout/ThemeToggle';
+import FaappLogo from '../components/layout/FaappLogo';
 import { useAuthStore } from '../store/authStore';
 
 // ---------------------------------------------------------------------------
@@ -158,11 +159,8 @@ export default function Landing() {
       {/* ---------------- Хедер ---------------- */}
       <header className="sticky top-0 z-40 bg-card/90 backdrop-blur border-b border-card">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
-          <a href="#top" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-gradient-to-br from-primary to-primary-dark rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">F</span>
-            </div>
-            <span className="text-xl font-bold">faapp</span>
+          <a href="#top" className="flex items-center gap-2.5" aria-label="faapp">
+            <FaappLogo size="lg" />
           </a>
 
           <nav className="hidden md:flex items-center gap-8">
@@ -447,9 +445,7 @@ export default function Landing() {
 
         <div className="flex flex-col md:flex-row items-center justify-between gap-4 text-sm text-app-muted">
           <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 bg-gradient-to-br from-primary to-primary-dark rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">F</span>
-            </div>
+            <FaappLogo />
             <span>© 2026 faapp</span>
           </div>
           <a href="mailto:support@faapp.ru" className="hover:text-app transition">

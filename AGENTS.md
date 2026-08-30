@@ -330,3 +330,46 @@ npm run preview   # Предпросмотр продакшн-сборки
 - Новые подсвечиваемые в туре элементы — помечать `data-tour="уникальный-id"` и добавлять шаг в соответствующий `*_STEPS` в `GuidedTour.tsx`.
 - Подтверждения действий — кастомные модалки, не `window.confirm`/`alert`.
 - Перед коммитом: `npx tsc --noEmit && npm run build` — оба должны проходить.
+
+---
+
+## Changelog сессии 29–30.08.2026 (лендинг, верификация email, импорт себестоимостей)
+
+### Лендинг + шторка авторизации
+- `src/pages/Landing.tsx` — публичная страница `/` (в PublicRoute): hero с
+  CSS-моком дашборда, «Как работает», «Возможности», «Тарифы»
+  (Старт 0₽ + 2 плана-«скоро» — задел под paywall), FAQ (аккордеон),
+  CTA-баннер, футер с юр-заглушками. Порядок меню хедера = порядок секций.
+- Авторизация — правая шторка (drawer) поверх лендинга; на мобильных —
+  во всю ширину. Содержимое — переиспользуемый `AuthCard`.
+- `src/components/auth/AuthCard.tsx` — вся логика входа/регистрации
+  (вынесена из Login.tsx): режимы, экран «Проверьте почту» после
+  регистрации, блок email_unverified с resend (кулдаун 60с).
+  Компактная вёрстка (умещается на 13"). Пропсы: initialMode, onClose.
+- `Login.tsx` — тонкая обёртка над AuthCard (роут /login живёт как фолбэк).
+
+### Верификация email / сброс пароля
+- Новые страницы: `/verify-email` (токен из письма, авто-вход, модалка
+  resend вместо window.prompt), `/forgot-password`, `/reset-password`
+  (валидация токена на маунте через validate-reset-token — повторная
+  ссылка сразу показывает ошибку).
+- `authStore`: register больше не логинит (возвращает ответ страницы);
+  login обрабатывает 403 + X-Error-Code: email_unverified (флаг
+  emailUnverified); поле emailUnverified сбрасывается в clearError.
+- `authApi`: register → RegisterResponse; + verifyEmail, resendVerification,
+  forgotPassword, resetPassword, validateResetToken.
+
+### Товары
+- ProductModal: предупреждение (не блокирующее) о дубле marketplace_sku
+  среди активных товаров — двухшаговое подтверждение («Всё равно сохранить»);
+  null-safe инициализация всех строковых полей формы.
+- Products.tsx: кнопка «Себестоимости из файла» + CostImportModal
+  (шаблон с префиллом → предпросмотр с цветовой маркировкой create/update/
+  error → импорт). productsApi: getCostTemplate, importCosts.
+
+### Заметки
+- Онбординг (GuidedTour) — флаги в localStorage ПО БРАУЗЕРУ, не по аккаунту
+  (осознанное решение владельца).
+- Глобальный `tsc` всё ещё падает (~77 ошибок, известно) — точечные проверки:
+  `npx tsc --noEmit --jsx react-jsx --esModuleInterop --skipLibCheck
+  --strict false --module esnext --moduleResolution bundler <файлы>`.

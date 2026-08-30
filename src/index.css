@@ -101,3 +101,73 @@
 html {
   scroll-behavior: smooth;
 }
+
+/* ---------------- Логотип FAAPP: FA → растущая гистограмма → FA ---------------- */
+/* Одна проигрывка 3.2s (задержка 0.4s): буквы FA стоят → F кувыркается
+   в основание + две растущие колонки, A сжимается в колонку со стрелкой →
+   пауза на гистограмме → возврат в FA. transform-origin — центр bbox
+   (transform-box: fill-box). ВАЖНО: в keyframes порядок функций —
+   scaleX ПЕРЕД rotate (применяется раньше): сначала зеркалим F, потом
+   кувырок на -90°. При таком порядке верхняя палочка F приземляется
+   СПРАВА высокой колонкой, нижняя — СЛЕВА малой: _i_I */
+
+.faapp-logo-f {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: faapp-logo-tumble 3.2s 0.4s ease-in-out both;
+}
+
+@keyframes faapp-logo-tumble {
+  0%, 30%   { transform: translate(1px, 3px) scaleX(1)  rotate(0deg); }
+  55%, 78%  { transform: translate(1px, 3px) scaleX(-1) rotate(-90deg); }
+  100%      { transform: translate(1px, 3px) scaleX(1)  rotate(0deg); }
+}
+
+.faapp-logo-a {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: faapp-logo-squeeze 3.2s 0.4s ease-in-out both;
+}
+
+@keyframes faapp-logo-squeeze {
+  0%, 34%   { transform: scaleX(1); }
+  55%, 78%  { transform: scaleX(0.3); }
+  100%      { transform: scaleX(1); }
+}
+
+.faapp-logo-a-bar {
+  /* перекладина A растворяется в фазе гистограммы и возвращается с буквой */
+  animation: faapp-logo-fade 3.2s 0.4s linear both;
+}
+
+@keyframes faapp-logo-fade {
+  0%, 40%   { opacity: 1; }
+  58%, 76%  { opacity: 0; }
+  100%      { opacity: 1; }
+}
+
+.faapp-logo-arrow {
+  /* стрелка вырастает на вершине колонки A в фазе гистограммы */
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: faapp-logo-pop 3.2s 0.4s ease-in-out both;
+}
+
+@keyframes faapp-logo-pop {
+  0%, 42%   { opacity: 0; transform: translateY(6px) scale(0.4); }
+  60%, 74%  { opacity: 1; transform: translateY(0)    scale(1); }
+  100%      { opacity: 0; transform: translateY(6px) scale(0.4); }
+}
+
+/* Пользователям с включённой опцией «меньше анимации» — статичные буквы FA */
+@media (prefers-reduced-motion: reduce) {
+  .faapp-logo-f,
+  .faapp-logo-a,
+  .faapp-logo-a-bar,
+  .faapp-logo-arrow {
+    animation: none;
+  }
+  .faapp-logo-arrow {
+    opacity: 0;
+  }
+}
