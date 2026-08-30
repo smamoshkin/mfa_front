@@ -12,6 +12,12 @@ export interface LoginResponse {
   token_type: string;
 }
 
+// Регистрация больше НЕ логинит сразу: сначала подтверждение email письмом
+export interface RegisterResponse {
+  message: string;
+  email: string;
+}
+
 export interface RegisterRequest {
   login_email: string;
   password: string;
@@ -33,12 +39,45 @@ export const authApi = {
     return response.data;
   },
 
-  // Регистрация
-  register: async (data: RegisterRequest): Promise<LoginResponse> => {
+  // Регистрация — письмо со ссылкой подтверждения, без автологина
+  register: async (data: RegisterRequest): Promise<RegisterResponse> => {
     const response = await axiosClient.post('/auth/register', {
       login_email: data.login_email,
       password: data.password,
       name: data.name || '',
+    });
+    return response.data;
+  },
+
+  // Подтверждение email по токену из письма — сразу логинит
+  verifyEmail: async (token: string): Promise<LoginResponse> => {
+    const response = await axiosClient.post('/auth/verify-email', { token });
+    return response.data;
+  },
+
+  // Повторная отправка письма подтверждения (rate limit 60 сек на бэке)
+  resendVerification: async (email: string): Promise<{ message: string }> => {
+    const response = await axiosClient.post('/auth/resend-verification', { email });
+    return response.data;
+  },
+
+  // Запрос сброса пароля — всегда 200, не раскрывает существование email
+  forgotPassword: async (email: string): Promise<{ message: string }> => {
+    const response = await axiosClient.post('/auth/forgot-password', { email });
+    return response.data;
+  },
+
+  // Проверка reset-токена без потребления (используется/устарел?)
+  validateResetToken: async (token: string): Promise<{ valid: boolean }> => {
+    const response = await axiosClient.post('/auth/validate-reset-token', { token });
+    return response.data;
+  },
+
+  // Установка нового пароля по одноразовому токену из письма
+  resetPassword: async (token: string, newPassword: string): Promise<{ message: string }> => {
+    const response = await axiosClient.post('/auth/reset-password', {
+      token,
+      new_password: newPassword,
     });
     return response.data;
   },

@@ -3,6 +3,9 @@ import { useAuthStore } from './store/authStore';
 import { useInactivityLogout } from './hooks/useInactivityLogout';
 import AppLayout from './components/layout/AppLayout';
 import Login from './pages/Login';
+import VerifyEmail from './pages/VerifyEmail';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword from './pages/ResetPassword';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import Analytics from './pages/Analytics';
@@ -37,6 +40,11 @@ function App() {
               <Login />
             </PublicRoute>
           } />
+
+          {/* Публичные страницы авторизации (доступны в любом состоянии) */}
+          <Route path="/verify-email" element={<VerifyEmail />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPassword />} />
 
           {/* Все защищённые страницы — внутри общего каркаса (хедер + навигация) */}
           <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>

@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import { authApi } from '../api/authApi';
+import type { RegisterResponse } from '../api/authApi';
 import type { User } from '../types/api';
 
 interface AuthState {
@@ -8,10 +9,12 @@ interface AuthState {
   token: string | null;
   isLoading: boolean;
   error: string | null;
-  
+  // true, когда логин отклонён из-за неподтверждённого email (403 + X-Error-Code)
+  emailUnverified: boolean;
+
   // Действия
   login: (username: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name?: string) => Promise<void>;
+  register: (email: string, password: string, name?: string) => Promise<RegisterResponse>;
   logout: () => void;
   setWbApiKey: (wbApiKey: string) => Promise<void>;
   loadCurrentUser: () => Promise<void>;
@@ -26,36 +29,43 @@ export const useAuthStore = create<AuthState>()(
       token: null,
       isLoading: false,
       error: null,
+      emailUnverified: false,
 
       login: async (username: string, password: string) => {
-        set({ isLoading: true, error: null });
+        set({ isLoading: true, error: null, emailUnverified: false });
         try {
-          const response = await authApi.login({ 
+          const response = await authApi.login({
             email: username,  // username из параметра = это email
-            password: password 
+            password: password
           });
-          
+
           set({
             user: null,
             token: response.access_token,
             isLoading: false,
           });
-          
+
           sessionStorage.setItem('access_token', response.access_token);
 
           // Загружаем информацию о пользователе после успешного логина
           get().loadCurrentUser();
 
         } catch (error: any) {
-          const errorMessage = error.response?.data?.detail || 
-                             error.response?.data?.message || 
-                             'Ошибка входа. Проверьте email и пароль';
-          
+          const errorCode = error.response?.headers?.['x-error-code'];
+          const isUnverified =
+            error.response?.status === 403 && errorCode === 'email_unverified';
+          const errorMessage = isUnverified
+            ? 'Email не подтверждён. Проверьте почту — мы отправили письмо со ссылкой подтверждения.'
+            : error.response?.data?.detail ||
+              error.response?.data?.message ||
+              'Ошибка входа. Проверьте email и пароль';
+
           set({
             error: errorMessage,
+            emailUnverified: isUnverified,
             isLoading: false,
           });
-          
+
           // Очищаем токен при ошибке
           localStorage.removeItem('access_token');
         }
@@ -64,33 +74,28 @@ export const useAuthStore = create<AuthState>()(
       register: async (email: string, password: string, name?: string) => {
         set({ isLoading: true, error: null });
         try {
-          // ИСПРАВЛЯЕМ ЗДЕСЬ: регистрация использует login_email
-          const response = await authApi.register({ 
-            login_email: email,  // меняем поле на login_email
+          const response = await authApi.register({
+            login_email: email,
             password: password,
             name: name || 'Новый пользователь',
           });
-          
-          set({
-            user: null, // user будет null после регистрации
-            token: response.access_token,
-            isLoading: false,
-          });
-          
-          sessionStorage.setItem('access_token', response.access_token);
-          
-          // Загружаем информацию о пользователе
-          get().loadCurrentUser();
-          
+
+          // Регистрация НЕ логинит: токена нет, ждём подтверждения email.
+          // Ответ (message + email) уходит вызывающей странице — она покажет
+          // экран «проверьте почту».
+          set({ isLoading: false });
+          return response;
+
         } catch (error: any) {
-          const errorMessage = error.response?.data?.detail || 
-                             error.response?.data?.message || 
+          const errorMessage = error.response?.data?.detail ||
+                             error.response?.data?.message ||
                              'Ошибка регистрации';
-          
+
           set({
             error: errorMessage,
             isLoading: false,
           });
+          throw error;
         }
       },
 
@@ -161,7 +166,7 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      clearError: () => set({ error: null }),
+      clearError: () => set({ error: null, emailUnverified: false }),
     }),
     {
       name: 'auth-storage',

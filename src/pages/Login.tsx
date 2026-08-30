@@ -1,9 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { useAuthStore } from '../store/authStore';
-import { LogIn, Mail, Lock, AlertCircle, User } from 'lucide-react';
+import { authApi } from '../api/authApi';
+import { LogIn, Mail, Lock, AlertCircle, User, MailCheck, RefreshCw } from 'lucide-react';
 
 // Схема валидации для входа
 const loginSchema = z.object({
@@ -20,17 +22,29 @@ type LoginFormData = z.infer<typeof loginSchema>;
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Login() {
-  const { login, register, isLoading, error, clearError } = useAuthStore();
+  const { login, register, isLoading, error, emailUnverified, clearError } = useAuthStore();
   const [isLoginMode, setIsLoginMode] = useState(true);
+  // После успешной регистрации — экран «проверьте почту» вместо формы
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  // Повторная отправка письма: кулдаун 60с (зеркалит rate limit бэка)
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const [isResending, setIsResending] = useState(false);
+
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const t = setTimeout(() => setResendCooldown((s) => s - 1), 1000);
+    return () => clearTimeout(t);
+  }, [resendCooldown]);
 
   // Используем разные схемы для логина и регистрации
   const schema = isLoginMode ? loginSchema : registerSchema;
-  
+
   const {
     register: formRegister,
     handleSubmit,
     formState: { errors },
     reset,
+    getValues,
   } = useForm<LoginFormData | RegisterFormData>({
     resolver: zodResolver(schema),
     defaultValues: {
@@ -40,13 +54,32 @@ export default function Login() {
     },
   });
 
+  const handleResend = async () => {
+    if (resendCooldown > 0 || isResending) return;
+    const email = registeredEmail || getValues('email');
+    if (!email) return;
+    setIsResending(true);
+    try {
+      await authApi.resendVerification(email);
+      setResendCooldown(60);
+    } finally {
+      setIsResending(false);
+    }
+  };
+
   const onSubmit = async (data: any) => {
     clearError();
-    
+
     if (isLoginMode) {
       await login(data.email, data.password);
     } else {
-      await register(data.email, data.password, data.name);
+      // Регистрация НЕ логинит: показываем экран «проверьте почту»
+      try {
+        const response = await register(data.email, data.password, data.name);
+        setRegisteredEmail(response.email);
+      } catch {
+        // ошибка уже в сторе (error) — остаёмся на форме
+      }
     }
   };
 
@@ -84,6 +117,61 @@ export default function Login() {
               <p className="text-red-700 text-sm">{error}</p>
             </div>
           )}
+
+          {emailUnverified && (
+            <div className="mb-6">
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendCooldown > 0 || isResending}
+                className="w-full py-3 px-4 bg-gradient-to-r from-green-600 to-emerald-600 text-white font-medium rounded-xl hover:from-green-700 hover:to-emerald-700 transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <RefreshCw className={`w-4 h-4 ${isResending ? 'animate-spin' : ''}`} />
+                {resendCooldown > 0
+                  ? `Письмо отправлено — повтор через ${resendCooldown} с`
+                  : 'Отправить письмо подтверждения заново'}
+              </button>
+            </div>
+          )}
+
+          {registeredEmail ? (
+            <div className="text-center py-4">
+              <div className="inline-flex items-center justify-center w-16 h-16 bg-green-100 rounded-2xl mb-4">
+                <MailCheck className="w-8 h-8 text-green-600" />
+              </div>
+              <h2 className="text-xl font-bold text-app mb-2">Проверьте почту</h2>
+              <p className="text-app-2 mb-2">
+                Мы отправили письмо со ссылкой подтверждения на
+                <span className="font-medium"> {registeredEmail}</span>.
+              </p>
+              <p className="text-app-2 text-sm mb-6">
+                Ссылка действует 48 часов. После подтверждения вы сможете войти.
+              </p>
+              <button
+                type="button"
+                onClick={handleResend}
+                disabled={resendCooldown > 0 || isResending}
+                className="w-full py-3 px-4 border border-input text-app-2 font-medium rounded-xl hover:bg-hover transition disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mb-3"
+              >
+                <RefreshCw className={`w-4 h-4 ${isResending ? 'animate-spin' : ''}`} />
+                {resendCooldown > 0
+                  ? `Отправлено — повтор через ${resendCooldown} с`
+                  : 'Отправить письмо заново'}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setRegisteredEmail(null);
+                  setIsLoginMode(true);
+                  reset();
+                }}
+                className="w-full py-3 px-4 bg-gradient-to-r from-primary to-primary-dark text-white font-semibold rounded-xl hover:opacity-90 transition"
+              >
+                Перейти ко входу
+              </button>
+            </div>
+          ) : (
+          <>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
             {/* Поле имени только для регистрации */}
@@ -155,16 +243,12 @@ export default function Login() {
 
             {isLoginMode && (
               <div className="text-right">
-                <button
-                  type="button"
+                <Link
+                  to="/forgot-password"
                   className="text-sm text-blue-600 hover:text-blue-700 hover:underline"
-                  onClick={() => {
-                    // TODO: Реализовать восстановление пароля
-                    alert('Функция восстановления пароля скоро будет доступна');
-                  }}
                 >
                   Забыли пароль?
-                </button>
+                </Link>
               </div>
             )}
 
@@ -216,6 +300,8 @@ export default function Login() {
               </a>
             </p>
           </div>
+          </>
+          )}
         </div>
 
         <div className="text-center mt-8">
