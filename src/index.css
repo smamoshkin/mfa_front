@@ -96,3 +96,8 @@
     color: var(--foreground);
   }
 }
+
+/* Плавная якорная навигация на лендинге */
+html {
+  scroll-behavior: smooth;
+}

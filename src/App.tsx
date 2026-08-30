@@ -3,6 +3,7 @@ import { useAuthStore } from './store/authStore';
 import { useInactivityLogout } from './hooks/useInactivityLogout';
 import AppLayout from './components/layout/AppLayout';
 import Login from './pages/Login';
+import Landing from './pages/Landing';
 import VerifyEmail from './pages/VerifyEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import ResetPassword from './pages/ResetPassword';
@@ -59,7 +60,12 @@ function App() {
             <ApiTest />
           } />
 
-          <Route path="/" element={<Navigate to="/analytics" />} />
+          {/* Лендинг — публичная страница для гостей; залогиненные уезжают в приложение */}
+          <Route path="/" element={
+            <PublicRoute>
+              <Landing />
+            </PublicRoute>
+          } />
 
           <Route path="*" element={
             <div className="flex items-center justify-center h-screen">
