@@ -102,72 +102,120 @@ html {
   scroll-behavior: smooth;
 }
 
-/* ---------------- Логотип FAAPP: FA → растущая гистограмма → FA ---------------- */
-/* Одна проигрывка 3.2s (задержка 0.4s): буквы FA стоят → F кувыркается
-   в основание + две растущие колонки, A сжимается в колонку со стрелкой →
-   пауза на гистограмме → возврат в FA. transform-origin — центр bbox
-   (transform-box: fill-box). ВАЖНО: в keyframes порядок функций —
-   scaleX ПЕРЕД rotate (применяется раньше): сначала зеркалим F, потом
-   кувырок на -90°. При таком порядке верхняя палочка F приземляется
-   СПРАВА высокой колонкой, нижняя — СЛЕВА малой: _i_I */
+/* ---------------- Логотип FAAPP (геометрия из Figma) ---------------- */
+/* FA → растущая гистограмма → FA. Одна проигрывка 4.8s.
+   Общий таймлайн (в % длительности):
+     0–25%   стоят буквы FA
+     25–45%  F кувыркается и растворяется, A сжимается и растворяется
+     28–38%  вырастает основание
+     34–56%  колонки поднимаются по очереди слева направо (b1→b4)
+     56–63%  стрелка выстреливает вверх
+     63–75%  пауза — РОСТ показан
+     75–100% обратная сборка: стрелка уходит, колонки втягиваются
+             в обратном порядке, буквы возвращаются
+   ВАЖНО: CSS transform-функции применяются СПРАВА налево. Для «кувырка
+   с переворотом» порядок scaleX(-1) rotate(-90deg): сначала зеркалим,
+   потом вращаем. transform-origin — относительно bbox элемента
+   (transform-box: fill-box). Морфинга path→rect в CSS нет — переход
+   построен на crossfade + transform-хореографии. */
 
-.faapp-logo-f {
+.faapp-f {
   transform-box: fill-box;
   transform-origin: center;
-  animation: faapp-logo-tumble 3.2s 0.4s ease-in-out both;
+  animation: faapp-f 4.8s ease-in-out both;
 }
 
-@keyframes faapp-logo-tumble {
-  0%, 30%   { transform: translate(1px, 3px) scaleX(1)  rotate(0deg); }
-  55%, 78%  { transform: translate(1px, 3px) scaleX(-1) rotate(-90deg); }
-  100%      { transform: translate(1px, 3px) scaleX(1)  rotate(0deg); }
+@keyframes faapp-f {
+  0%, 25%  { opacity: 1; transform: scaleX(1)  rotate(0deg); }
+  45%, 75% { opacity: 0; transform: scaleX(-1) rotate(-90deg); }
+  100%     { opacity: 1; transform: scaleX(1)  rotate(0deg); }
 }
 
-.faapp-logo-a {
+.faapp-a {
   transform-box: fill-box;
   transform-origin: center;
-  animation: faapp-logo-squeeze 3.2s 0.4s ease-in-out both;
+  animation: faapp-a 4.8s ease-in-out both;
 }
 
-@keyframes faapp-logo-squeeze {
-  0%, 34%   { transform: scaleX(1); }
-  55%, 78%  { transform: scaleX(0.3); }
-  100%      { transform: scaleX(1); }
+@keyframes faapp-a {
+  0%, 27%  { opacity: 1; transform: scaleX(1); }
+  45%, 75% { opacity: 0; transform: scaleX(0.25); }
+  100%     { opacity: 1; transform: scaleX(1); }
 }
 
-.faapp-logo-a-bar {
-  /* перекладина A растворяется в фазе гистограммы и возвращается с буквой */
-  animation: faapp-logo-fade 3.2s 0.4s linear both;
+.faapp-base {
+  opacity: 0; /* до анимации и при reduced-motion гистограмма скрыта */
+  transform-box: fill-box;
+  transform-origin: left center;
+  animation: faapp-base 4.8s ease-in-out both;
 }
 
-@keyframes faapp-logo-fade {
-  0%, 40%   { opacity: 1; }
-  58%, 76%  { opacity: 0; }
-  100%      { opacity: 1; }
+@keyframes faapp-base {
+  0%, 28%   { opacity: 0; transform: scaleX(0); }
+  38%, 88%  { opacity: 1; transform: scaleX(1); }
+  96%, 100% { opacity: 0; transform: scaleX(0); }
 }
 
-.faapp-logo-arrow {
-  /* стрелка вырастает на вершине колонки A в фазе гистограммы */
+/* Колонки растут вверх (origin — низ прямоугольника), появляются
+   слева направо, втягиваются в обратном порядке */
+.faapp-b1, .faapp-b2, .faapp-b3, .faapp-b4 {
+  opacity: 0;
   transform-box: fill-box;
   transform-origin: center bottom;
-  animation: faapp-logo-pop 3.2s 0.4s ease-in-out both;
 }
 
-@keyframes faapp-logo-pop {
-  0%, 42%   { opacity: 0; transform: translateY(6px) scale(0.4); }
-  60%, 74%  { opacity: 1; transform: translateY(0)    scale(1); }
-  100%      { opacity: 0; transform: translateY(6px) scale(0.4); }
+.faapp-b1 { animation: faapp-b1 4.8s ease-in-out both; }
+.faapp-b2 { animation: faapp-b2 4.8s ease-in-out both; }
+.faapp-b3 { animation: faapp-b3 4.8s ease-in-out both; }
+.faapp-b4 { animation: faapp-b4 4.8s ease-in-out both; }
+
+@keyframes faapp-b1 {
+  0%, 34%   { opacity: 0; transform: scaleY(0); }
+  44%, 86%  { opacity: 1; transform: scaleY(1); }
+  94%, 100% { opacity: 0; transform: scaleY(0); }
+}
+
+@keyframes faapp-b2 {
+  0%, 37%   { opacity: 0; transform: scaleY(0); }
+  47%, 83%  { opacity: 1; transform: scaleY(1); }
+  91%, 100% { opacity: 0; transform: scaleY(0); }
+}
+
+@keyframes faapp-b3 {
+  0%, 40%   { opacity: 0; transform: scaleY(0); }
+  50%, 80%  { opacity: 1; transform: scaleY(1); }
+  88%, 100% { opacity: 0; transform: scaleY(0); }
+}
+
+@keyframes faapp-b4 {
+  0%, 43%   { opacity: 0; transform: scaleY(0); }
+  53%, 77%  { opacity: 1; transform: scaleY(1); }
+  85%, 100% { opacity: 0; transform: scaleY(0); }
+}
+
+.faapp-arrow {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center bottom;
+  animation: faapp-arrow 4.8s ease-in-out both;
+}
+
+@keyframes faapp-arrow {
+  0%, 56%   { opacity: 0; transform: translateY(12px) scale(0.3); }
+  63%, 75%  { opacity: 1; transform: translateY(0)    scale(1); }
+  80%, 100% { opacity: 0; transform: translateY(12px) scale(0.3); }
 }
 
 /* Пользователям с включённой опцией «меньше анимации» — статичные буквы FA */
 @media (prefers-reduced-motion: reduce) {
-  .faapp-logo-f,
-  .faapp-logo-a,
-  .faapp-logo-a-bar,
-  .faapp-logo-arrow {
+  .faapp-f,
+  .faapp-a,
+  .faapp-base,
+  .faapp-b1,
+  .faapp-b2,
+  .faapp-b3,
+  .faapp-b4,
+  .faapp-arrow {
     animation: none;
-  }
-  .faapp-logo-arrow {
-    opacity: 0;
   }
 }
