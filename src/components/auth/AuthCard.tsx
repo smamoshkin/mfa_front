@@ -41,6 +41,9 @@ export default function AuthCard({ initialMode = 'login', onClose }: AuthCardPro
   // Повторная отправка письма: кулдаун 60с (зеркалит rate limit бэка)
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isResending, setIsResending] = useState(false);
+  // Согласие на обработку ПД (обязательный чекбокс регистрации, не предустановлен —
+  // текст из docs/legal/02-consent-pd.md, часть А)
+  const [pdConsent, setPdConsent] = useState(false);
 
   useEffect(() => {
     if (resendCooldown <= 0) return;
@@ -79,15 +82,19 @@ export default function AuthCard({ initialMode = 'login', onClose }: AuthCardPro
     }
   };
 
-  const onSubmit = async (data: any) => {
+  const onSubmit = async (data: LoginFormData | RegisterFormData) => {
     clearError();
 
     if (isLoginMode) {
       await login(data.email, data.password);
     } else {
+      // Без отметки согласия регистрацию не отправляем (кнопка блокируется, это страховка)
+      if (!pdConsent) return;
       // Регистрация НЕ логинит: показываем экран «проверьте почту»
       try {
-        const response = await register(data.email, data.password, data.name);
+        // name есть только в режиме регистрации (сужение типа, как с errors.name выше)
+        const { name } = data as RegisterFormData;
+        const response = await register(data.email, data.password, name);
         setRegisteredEmail(response.email);
       } catch {
         // ошибка уже в сторе (error) — остаёмся на форме
@@ -98,6 +105,7 @@ export default function AuthCard({ initialMode = 'login', onClose }: AuthCardPro
   const toggleMode = () => {
     setIsLoginMode(!isLoginMode);
     clearError();
+    setPdConsent(false);
     reset(); // Сбрасываем форму при переключении режима
   };
 
@@ -271,9 +279,40 @@ export default function AuthCard({ initialMode = 'login', onClose }: AuthCardPro
             </div>
           )}
 
+          {/* Согласие на обработку ПД — только для регистрации (152-ФЗ, ст. 9:
+              отметка должна ставиться пользователем, без неё кнопка неактивна) */}
+          {!isLoginMode && (
+            <div>
+              <label className="flex items-start gap-2.5 cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={pdConsent}
+                  onChange={(e) => setPdConsent(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 shrink-0 accent-[#1F2AE1] cursor-pointer"
+                />
+                <span className="text-xs text-app-2 leading-relaxed">
+                  Я принимаю{' '}
+                  <a href="/offer" target="_blank" rel="noopener" className="text-primary hover:underline">
+                    Пользовательское соглашение
+                  </a>{' '}
+                  и даю{' '}
+                  <a href="/consent" target="_blank" rel="noopener" className="text-primary hover:underline">
+                    согласие на обработку персональных данных
+                  </a>{' '}
+                  (адрес электронной почты, имя учётной записи, API-ключ Wildberries,
+                  IP-адрес, данные cookie) на условиях{' '}
+                  <a href="/privacy" target="_blank" rel="noopener" className="text-primary hover:underline">
+                    Политики конфиденциальности
+                  </a>{' '}
+                  в целях использования сервиса faapp.ru.
+                </span>
+              </label>
+            </div>
+          )}
+
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || (!isLoginMode && !pdConsent)}
             className={`w-full py-3 px-4 font-semibold rounded-xl focus:ring-4 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-lg hover:shadow-xl ${
               isLoginMode
                 ? 'bg-gradient-to-r from-primary to-primary-dark hover:from-primary-dark hover:to-primary focus:ring-blue-300 text-white'
@@ -304,21 +343,21 @@ export default function AuthCard({ initialMode = 'login', onClose }: AuthCardPro
           </button>
         </div>
 
-        <div className="mt-4 text-center">
-          <p className="text-xs text-app-muted">
-            {isLoginMode
-              ? 'Входя в систему, вы соглашаетесь с нашими'
-              : 'Регистрируясь, вы соглашаетесь с нашими'}
-            <br />
-            <a href="#" className="text-primary hover:underline">
-              Условиями использования
-            </a>{' '}
-            и{' '}
-            <a href="#" className="text-primary hover:underline">
-              Политикой конфиденциальности
-            </a>
-          </p>
-        </div>
+        {isLoginMode && (
+          <div className="mt-4 text-center">
+            <p className="text-xs text-app-muted">
+              Входя в систему, вы соглашаетесь с нашим
+              <br />
+              <a href="/offer" target="_blank" rel="noopener" className="text-primary hover:underline">
+                Пользовательским соглашением
+              </a>{' '}
+              и{' '}
+              <a href="/privacy" target="_blank" rel="noopener" className="text-primary hover:underline">
+                Политикой конфиденциальности
+              </a>
+            </p>
+          </div>
+        )}
       </>
       )}
     </div>

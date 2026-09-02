@@ -18,10 +18,15 @@ export interface RegisterResponse {
   email: string;
 }
 
+// Версия текста согласия на обработку ПД. Держать в синхроне с документом
+// docs/legal/02-consent-pd.md («Версия: X.Y») — бэк пишет её в таблицу pd_consents.
+export const PD_CONSENT_VERSION = '1.0';
+
 export interface RegisterRequest {
   login_email: string;
   password: string;
   name: string;
+  consent_version?: string;
 }
 
 export const authApi = {
@@ -39,12 +44,15 @@ export const authApi = {
     return response.data;
   },
 
-  // Регистрация — письмо со ссылкой подтверждения, без автологина
+  // Регистрация — письмо со ссылкой подтверждения, без автологина.
+  // consent_version: какой версией текста согласия пользователь отметил галку —
+  // бэк фиксирует это как доказательство (152-ФЗ).
   register: async (data: RegisterRequest): Promise<RegisterResponse> => {
     const response = await axiosClient.post('/auth/register', {
       login_email: data.login_email,
       password: data.password,
       name: data.name || '',
+      consent_version: data.consent_version ?? PD_CONSENT_VERSION,
     });
     return response.data;
   },

@@ -15,6 +15,9 @@ import Taxes from './pages/Taxes';
 // import ApiStatus from './components/ApiStatus';
 import TenantProfile from './pages/TenantProfile';
 import ToastNotification from './components/ToastNotification';
+import PrivacyPage from './pages/legal/PrivacyPage';
+import OfferPage from './pages/legal/OfferPage';
+import ConsentPage from './pages/legal/ConsentPage';
 
 // Компонент защищенного маршрута
 function PrivateRoute({ children }: { children: React.ReactNode }) {
@@ -46,6 +49,11 @@ function App() {
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+
+          {/* Юридические страницы (публичные, доступны и залогиненным) */}
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/offer" element={<OfferPage />} />
+          <Route path="/consent" element={<ConsentPage />} />
 
           {/* Все защищённые страницы — внутри общего каркаса (хедер + навигация) */}
           <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
