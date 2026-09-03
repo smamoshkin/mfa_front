@@ -9,7 +9,7 @@ import { useAuthStore } from '../store/authStore';
 import AnalyticsFiltersComponent from '../components/AnalyticsFilters';
 import { analyticsApi } from '../api/analyticsApi';
 import type { RentabilityResponse, AnalyticsFilters } from '../types/analytics';
-import { format } from 'date-fns';
+import { format, parseISO, addDays, subMonths, startOfMonth, endOfMonth } from 'date-fns';
 
 type AbcCategory = 'A' | 'B' | 'C';
 
@@ -59,6 +59,106 @@ function withAbcCategories(products: RentabilityResponse['products']) {
   });
 }
 
+// ----------------------------------------------------------------------------
+// Разница с прошлым периодом для бейджей карточек показателей.
+// Для выбранного месяца сравнение — с прошлым календарным месяцем; для
+// произвольного диапазона — с предыдущим периодом той же длины.
+// ----------------------------------------------------------------------------
+
+// Период для сравнения: если выбраны целые календарные месяцы — предыдущие
+// целые месяцы (для одного месяца это ровно прошлый календарный месяц);
+// для произвольного диапазона — предыдущее окно той же длины.
+function previousPeriodRange(dateFrom: string, dateTo: string): { date_from: string; date_to: string } {
+  const from = parseISO(dateFrom);
+  const to = parseISO(dateTo);
+
+  const isCalendarAligned = from.getDate() === 1 && to.getDate() === endOfMonth(to).getDate();
+  if (isCalendarAligned) {
+    const months = (to.getFullYear() - from.getFullYear()) * 12 + (to.getMonth() - from.getMonth()) + 1;
+    return {
+      date_from: format(startOfMonth(subMonths(from, months)), 'yyyy-MM-dd'),
+      date_to: format(endOfMonth(subMonths(to, months)), 'yyyy-MM-dd'),
+    };
+  }
+
+  const days = Math.max(Math.round((to.getTime() - from.getTime()) / 86_400_000) + 1, 1);
+  const prevTo = addDays(from, -1);
+  const prevFrom = addDays(prevTo, -(days - 1));
+  return { date_from: format(prevFrom, 'yyyy-MM-dd'), date_to: format(prevTo, 'yyyy-MM-dd') };
+}
+
+type MoMChangeKind = 'money' | 'pp'; // money — относительное изменение, pp — разница в процентных пунктах
+
+interface MoMChange {
+  text: string;                     // '+12.5%' | '-3.2 п.п.' | '0.0%'
+  title: string;                    // подсказка при наведении
+  tone: 'good' | 'bad' | 'neutral'; // good/bad — с учётом направления метрики (расходы: рост = bad)
+  direction: 1 | -1 | 0;
+}
+
+function computeMoMChange(
+  current: number,
+  previous: number,
+  kind: MoMChangeKind,
+  lowerIsBetter: boolean,
+  periodLabel: string,
+): MoMChange | null {
+  let delta: number;
+  if (kind === 'pp') {
+    // Процентные метрики (рентабельность, DRR) честнее сравнивать в пунктах:
+    // рост 5% → 10% — это +5 п.п., а не «+100%»
+    delta = current - previous;
+  } else {
+    // Относительное изменение не определено при нулевой/отрицательной базе
+    if (previous <= 0) return null;
+    delta = (current / previous - 1) * 100;
+  }
+
+  const rounded = Number(delta.toFixed(1));
+  const direction = rounded > 0 ? 1 : rounded < 0 ? -1 : 0;
+  const improved = lowerIsBetter ? direction < 0 : direction > 0;
+
+  return {
+    text: `${direction > 0 ? '+' : ''}${rounded.toFixed(1)}${kind === 'pp' ? ' п.п.' : '%'}`,
+    title: `По сравнению с прошлым периодом (${periodLabel})`,
+    tone: direction === 0 ? 'neutral' : improved ? 'good' : 'bad',
+    direction,
+  };
+}
+
+// Бейдж в правом верхнем углу карточки. change === null → «—» (нет базы сравнения).
+function MoMBadge({ change, onDark = false }: { change: MoMChange | null; onDark?: boolean }) {
+  if (!change) {
+    return (
+      <span
+        title="Нет данных за прошлый период для сравнения"
+        className={`text-xs font-medium px-2 py-0.5 rounded-full ${onDark ? 'text-white/80 bg-white/20' : 'text-app-muted bg-card-2'}`}
+      >
+        —
+      </span>
+    );
+  }
+
+  const Icon = change.direction > 0 ? ArrowUp : change.direction < 0 ? ArrowDown : null;
+  const toneClass = onDark
+    ? 'text-white bg-white/20'
+    : change.tone === 'good'
+      ? 'text-emerald-700 bg-emerald-50'
+      : change.tone === 'bad'
+        ? 'text-red-600 bg-red-50'
+        : 'text-app-muted bg-card-2';
+
+  return (
+    <span
+      title={change.title}
+      className={`text-xs font-medium px-2 py-0.5 rounded-full inline-flex items-center gap-0.5 ${toneClass}`}
+    >
+      {Icon && <Icon className="w-3 h-3" />}
+      {change.text}
+    </span>
+  );
+}
+
 const ABC_BADGE_STYLES: Record<AbcCategory, string> = {
   A: 'bg-mint text-ink',
   B: 'bg-sand text-sand-ink',
@@ -102,6 +202,9 @@ function matchesStatsFilter(row: AbcRow, key: StatsColumnKey, filterValue: strin
 export default function Analytics() {
   const { user } = useAuthStore();
   const [analyticsData, setAnalyticsData] = useState<RentabilityResponse | null>(null);
+  // Прошлый период той же длины — для бейджей «разница с прошлым месяцем»
+  const [prevAnalyticsData, setPrevAnalyticsData] = useState<RentabilityResponse | null>(null);
+  const [prevPeriod, setPrevPeriod] = useState<{ date_from: string; date_to: string } | null>(null);
   const [filteredProducts, setFilteredProducts] = useState<RentabilityResponse['products']>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
@@ -173,17 +276,57 @@ export default function Analytics() {
     });
   }, [filteredProducts, statsColumnFilters, statsSortKey, statsSortDirection]);
 
+  // Разница с прошлым периодом для бейджей карточек показателей.
+  // Денежные метрики — относительное изменение (%), рентабельность и DRR —
+  // разница в процентных пунктах (п.п.). Расходы: рост = ухудшение (bad).
+  const momBadges = useMemo(() => {
+    if (!analyticsData || !prevAnalyticsData || !prevPeriod) return null;
+    // Пустой отчёт за прошлый период = продаж не было, сравнивать не с чем
+    if (prevAnalyticsData.products.length === 0) return null;
+
+    const label = `${format(parseISO(prevPeriod.date_from), 'dd.MM.yyyy')} – ${format(parseISO(prevPeriod.date_to), 'dd.MM.yyyy')}`;
+    const ch = (current: number, previous: number, kind: MoMChangeKind, lowerIsBetter = false) =>
+      computeMoMChange(current, previous, kind, lowerIsBetter, label);
+
+    return {
+      profitability: ch(analyticsData.rentability.profitability, prevAnalyticsData.rentability.profitability, 'pp'),
+      revenue: ch(analyticsData.totals.total_revenue, prevAnalyticsData.totals.total_revenue, 'money'),
+      payout: ch(analyticsData.totals.total_payout, prevAnalyticsData.totals.total_payout, 'money'),
+      // Маржа на карточке — «маржа минус расходы», её и сравниваем
+      margin: ch(analyticsData.rentability.margin_minus_expenses, prevAnalyticsData.rentability.margin_minus_expenses, 'money'),
+      advertising: ch(analyticsData.rentability.total_advertising, prevAnalyticsData.rentability.total_advertising, 'money', true),
+      storage: ch(analyticsData.totals.total_storage_fee, prevAnalyticsData.totals.total_storage_fee, 'money', true),
+      logistics: ch(analyticsData.rentability.total_logistics, prevAnalyticsData.rentability.total_logistics, 'money', true),
+      tax: ch(analyticsData.totals.total_tax, prevAnalyticsData.totals.total_tax, 'money', true),
+      drr: ch(analyticsData.rentability.drr, prevAnalyticsData.rentability.drr, 'pp', true),
+    };
+  }, [analyticsData, prevAnalyticsData, prevPeriod]);
+
   const loadAnalyticsData = async (f: AnalyticsFilters = filters) => {
     setIsLoading(true);
     setError('');
 
     try {
-      const data = await analyticsApi.getRentability({
-        date_from: f.date_from,
-        date_to: f.date_to,
-        group_by: f.group_by,
-      });
+      // Текущий период + прошлый период той же длины параллельно (для бейджей
+      // «разница с прошлым месяцем»). Ошибка прошлого периода не ломает
+      // страницу — бейджи просто показывают «—».
+      const prevRange = previousPeriodRange(f.date_from, f.date_to);
+      const [data, prevData] = await Promise.all([
+        analyticsApi.getRentability({
+          date_from: f.date_from,
+          date_to: f.date_to,
+          group_by: f.group_by,
+        }),
+        analyticsApi.getRentability({
+          date_from: prevRange.date_from,
+          date_to: prevRange.date_to,
+          group_by: f.group_by,
+        }).catch(() => null),
+      ]);
+
       setAnalyticsData(data);
+      setPrevAnalyticsData(prevData);
+      setPrevPeriod(prevData ? prevRange : null);
     } catch (err: any) {
       console.error('Ошибка загрузки аналитики:', err);
       
@@ -418,10 +561,7 @@ export default function Analytics() {
                   <div className="p-1.5 rounded-lg bg-white/20">
                     <BarChart3 className="w-5 h-5 text-white" />
                   </div>
-                  <span className="text-xs font-medium text-white bg-white/20 px-2 py-0.5 rounded-full">
-                    {analyticsData.rentability.profitability > 0 ? '+' : ''}
-                    {analyticsData.rentability.profitability.toFixed(1)}%
-                  </span>
+                  <MoMBadge onDark change={momBadges?.profitability ?? null} />
                 </div>
                 <h3 className="text-xl font-bold text-white mb-0.5">
                   {analyticsData.rentability.profitability.toFixed(1)}%
@@ -434,14 +574,7 @@ export default function Analytics() {
                   <div className="p-1.5 rounded-lg bg-emerald-50">
                     <DollarSign className="w-5 h-5 text-emerald-700" />
                   </div>
-                  <span className={`text-xs font-medium ${
-                    analyticsData.rentability.profitability > 20 ? 'text-emerald-700 bg-emerald-50' :
-                    analyticsData.rentability.profitability > 10 ? 'text-yellow-600 bg-yellow-50' :
-                    'text-red-600 bg-red-50'
-                  } px-2 py-0.5 rounded-full`}>
-                    {analyticsData.rentability.profitability > 0 ? '+' : ''}
-                    {analyticsData.rentability.profitability.toFixed(1)}%
-                  </span>
+                  <MoMBadge change={momBadges?.revenue ?? null} />
                 </div>
                 <h3 className="text-xl font-bold text-app mb-0.5">
                   {analyticsData.summary.total_revenue}
@@ -454,9 +587,7 @@ export default function Analytics() {
                   <div className="p-1.5 rounded-lg bg-emerald-50">
                     <Wallet className="w-5 h-5 text-emerald-700" />
                   </div>
-                  <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                    {analyticsData.rentability.shop_margin_payout.toFixed(1)}%
-                  </span>
+                  <MoMBadge change={momBadges?.payout ?? null} />
                 </div>
                 <h3 className="text-xl font-bold text-app mb-0.5">
                   {analyticsData.totals.total_payout.toLocaleString()} ₽
@@ -469,9 +600,7 @@ export default function Analytics() {
                   <div className="p-1.5 rounded-lg bg-emerald-50">
                     <PieChart className="w-5 h-5 text-emerald-700" />
                   </div>
-                  <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full">
-                    {analyticsData.rentability.shop_margin_revenue.toFixed(1)}%
-                  </span>
+                  <MoMBadge change={momBadges?.margin ?? null} />
                 </div>
                 <h3 className="text-xl font-bold text-app mb-0.5">
                   {analyticsData.rentability.margin_minus_expenses.toLocaleString()} ₽
@@ -504,9 +633,7 @@ export default function Analytics() {
                   <div className="p-1.5 rounded-lg bg-red-50">
                     <Megaphone className="w-5 h-5 text-red-700" />
                   </div>
-                  <span className="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">
-                    {(analyticsData.rentability.total_advertising / analyticsData.totals.total_revenue * 100).toFixed(1)}%
-                  </span>
+                  <MoMBadge change={momBadges?.advertising ?? null} />
                 </div>
                 <h3 className="text-xl font-bold text-app mb-0.5">
                   {analyticsData.rentability.total_advertising.toLocaleString()} ₽
@@ -519,9 +646,7 @@ export default function Analytics() {
                   <div className="p-1.5 rounded-lg bg-red-50">
                     <Warehouse className="w-5 h-5 text-red-700" />
                   </div>
-                  <span className="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">
-                    {(analyticsData.totals.total_storage_fee / analyticsData.totals.total_revenue * 100).toFixed(1)}%
-                  </span>
+                  <MoMBadge change={momBadges?.storage ?? null} />
                 </div>
                 <h3 className="text-xl font-bold text-app mb-0.5">
                   {analyticsData.totals.total_storage_fee.toLocaleString()} ₽
@@ -534,9 +659,7 @@ export default function Analytics() {
                   <div className="p-1.5 rounded-lg bg-red-50">
                     <Truck className="w-5 h-5 text-red-700" />
                   </div>
-                  <span className="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">
-                    {(analyticsData.rentability.total_logistics / analyticsData.totals.total_revenue * 100).toFixed(1)}%
-                  </span>
+                  <MoMBadge change={momBadges?.logistics ?? null} />
                 </div>
                 <h3 className="text-xl font-bold text-app mb-0.5">
                   {analyticsData.rentability.total_logistics.toLocaleString()} ₽
@@ -549,9 +672,7 @@ export default function Analytics() {
                   <div className="p-1.5 rounded-lg bg-red-50">
                     <Receipt className="w-5 h-5 text-red-700" />
                   </div>
-                  <span className="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">
-                    {(analyticsData.totals.total_tax / analyticsData.totals.total_revenue * 100).toFixed(1)}%
-                  </span>
+                  <MoMBadge change={momBadges?.tax ?? null} />
                 </div>
                 <h3 className="text-xl font-bold text-app mb-0.5">
                   {analyticsData.totals.total_tax.toLocaleString()} ₽
@@ -564,9 +685,7 @@ export default function Analytics() {
                   <div className="p-1.5 rounded-lg bg-red-50">
                     <Percent className="w-5 h-5 text-red-700" />
                   </div>
-                  <span className="text-xs font-medium text-red-700 bg-red-50 px-2 py-0.5 rounded-full">
-                    {analyticsData.rentability.drr.toFixed(2)}%
-                  </span>
+                  <MoMBadge change={momBadges?.drr ?? null} />
                 </div>
                 <h3 className="text-xl font-bold text-app mb-0.5">
                   {analyticsData.rentability.drr.toFixed(2)}%
