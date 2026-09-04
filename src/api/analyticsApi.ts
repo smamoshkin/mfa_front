@@ -37,6 +37,10 @@ export const analyticsApi = {
       filters,
       {
         responseType: 'blob',
+        // Экспорт пересчитывает вьюху по сырым данным и может занять >30с:
+        // дефолтный таймаут axios обрывал выгрузку с "Ошибка при экспорте данных".
+        // Серверный лимит gunicorn — 180с, здесь зеркально.
+        timeout: 180000,
         headers: {
           'Content-Type': 'application/json',
         }
