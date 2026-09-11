@@ -10,6 +10,9 @@ import ResetPassword from './pages/ResetPassword';
 import Products from './pages/Products';
 import ProductDetail from './pages/ProductDetail';
 import Analytics from './pages/Analytics';
+import RentabilitySection from './components/analytics/RentabilitySection';
+import AbcSection from './components/analytics/AbcSection';
+import DynamicsSection from './components/analytics/DynamicsSection';
 import ApiTest from './pages/ApiTest';
 import Taxes from './pages/Taxes';
 // import ApiStatus from './components/ApiStatus';
@@ -57,7 +60,13 @@ function App() {
 
           {/* Все защищённые страницы — внутри общего каркаса (хедер + навигация) */}
           <Route element={<PrivateRoute><AppLayout /></PrivateRoute>}>
-            <Route path="/analytics" element={<Analytics />} />
+            {/* Аналитика — контейнер подразделов (сайдбар + общие фильтры) */}
+            <Route path="/analytics" element={<Analytics />}>
+              <Route index element={<Navigate to="rentability" replace />} />
+              <Route path="rentability" element={<RentabilitySection />} />
+              <Route path="abc" element={<AbcSection />} />
+              <Route path="dynamics" element={<DynamicsSection />} />
+            </Route>
             <Route path="/products" element={<Products />} />
             <Route path="/products/:id" element={<ProductDetail />} />
             <Route path="/profile" element={<TenantProfile />} />
