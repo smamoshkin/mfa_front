@@ -219,3 +219,11 @@ html {
     animation: none;
   }
 }
+
+/* Индетерминированный прогресс-бар: модалки налоговых ставок (бэк пересчитывает
+   агрегаты аналитики синхронно в запросе сохранения) */
+@keyframes progress-slide {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+.animate-progress-slide { animation: progress-slide 1.4s ease-in-out infinite; }

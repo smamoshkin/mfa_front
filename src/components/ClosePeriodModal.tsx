@@ -174,6 +174,17 @@ export default function ClosePeriodModal({
               </div>
             </div>
 
+            {loading && (
+              <div className="mt-4">
+                <div className="h-1.5 w-full overflow-hidden rounded-full bg-card-2">
+                  <div className="h-full w-1/3 rounded-full bg-primary animate-progress-slide"></div>
+                </div>
+                <p className="mt-2 text-xs text-app-muted">
+                  Пересчитываем маржу и рентабельность за затронутые периоды, пожалуйста подождите…
+                </p>
+              </div>
+            )}
+
             {/* Кнопки */}
             <div className="flex justify-end space-x-3 pt-6 mt-6 border-t border-card">
               <button

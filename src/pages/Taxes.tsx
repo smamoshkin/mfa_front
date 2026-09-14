@@ -78,17 +78,6 @@ export default function Taxes() {
     setIsRateModalOpen(true);
   };
 
-  // Ставка входит в расчёт аналитики через материализованные view — после
-  // изменения они пересчитываются фоновой задачей (~15 секунд). Пока идёт
-  // пересчёт, аналитика и Excel-выгрузка могут отдавать старые цифры.
-  const notifyAnalyticsRecalculating = () => {
-    toast(
-      'Новая ставка будет применена к данным аналитики в течение ~15 секунд. ' +
-      'Спустя это время обновите страницу аналитики и перевыгрузите Excel-отчёт.',
-      { duration: 10000, icon: 'ℹ️' },
-    );
-  };
-
   const handleSaveRate = async (data: TaxRateFormData) => {
     if (editingRate) {
       await taxApi.updateTaxRate(editingRate.id, {
@@ -103,7 +92,6 @@ export default function Taxes() {
       });
       toast.success('Ставка успешно создана');
     }
-    notifyAnalyticsRecalculating();
     await loadTaxRates();
     await loadCurrentTaxRate();
   };
@@ -118,7 +106,6 @@ export default function Taxes() {
     try {
       await taxApi.deleteTaxRate(deletingRate.id);
       toast.success('Ставка успешно удалена');
-      notifyAnalyticsRecalculating();
       await loadTaxRates();
       await loadCurrentTaxRate();
     } catch (error) {
@@ -135,7 +122,6 @@ export default function Taxes() {
     try {
       await taxApi.closeTaxRatePeriod(selectedRateId, endDate);
       toast.success('Период ставки закрыт');
-      notifyAnalyticsRecalculating();
       await loadTaxRates();
       await loadCurrentTaxRate();
     } catch (error: any) {
